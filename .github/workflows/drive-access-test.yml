@@ -19,6 +19,9 @@ jobs:
         run: |
           echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}" > ./service-account.json
 
-      - name: List root of shared folder
+      - name: List contents of shared folder
         run: |
-          rclone --drive-service-account-file=./service-account.json lsd drive:1subHlJyVj0ca9ITUoyq9i89YlBgOYehV
+          rclone lsd \
+            --drive-service-account-file=./service-account.json \
+            --drive-root-folder-id 1subHlJyVj0ca9ITUoyq9i89YlBgOYehV \
+            drive:
