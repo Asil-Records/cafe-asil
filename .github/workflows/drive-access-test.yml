@@ -17,9 +17,8 @@ jobs:
 
       - name: Write Service Account JSON
         run: |
-          echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_B64 }}" | base64 --decode > ./service-account.json
+          echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}" | base64 --decode > ./service-account.json
 
       - name: List root of shared folder
         run: |
-          # Replace <YOUR_SHARED_FOLDER_ID> with the folder shared with the service account
           rclone --drive-service-account-file=./service-account.json lsd drive:1subHlJyVj0ca9ITUoyq9i89YlBgOYehV
