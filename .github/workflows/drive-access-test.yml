@@ -19,11 +19,9 @@ jobs:
         run: |
           echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}" > ./service-account.json
 
-      - name: Create rclone remote with service account
+      - name: List shared folder in Drive
         run: |
-          rclone config create drive drive \
-            service_account_file=./service-account.json
-
-      - name: List root folder in Drive
-        run: |
-          rclone lsd drive:/
+          rclone lsd \
+            --drive-service-account-file=./service-account.json \
+            --drive-root-folder-id 1subHlJyVj0ca9ITUoyq9i89YlBgOYehV \
+            drive:
