@@ -7,27 +7,19 @@ jobs:
   drive-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
       - name: Install rclone
         run: |
           curl https://rclone.org/install.sh | sudo bash
+          rclone version
 
       - name: Write Service Account JSON
         run: |
           echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_B64 }}" | base64 --decode > ./service-account.json
 
-      - name: Create rclone config manually
+      - name: List root of shared folder
         run: |
-          cat <<EOF > ./rclone.conf
-          [drive]
-          type = drive
-          scope = drive
-          service_account_file = ./service-account.json
-          root_folder_id = 1subHlJyVj0ca9ITUoyq9i89YlBgOYehV
-          EOF
-
-
-      - name: List root folder in Drive
-        run: |
-          rclone --config ./rclone.conf lsd drive:/
+          # Replace <YOUR_SHARED_FOLDER_ID> with the folder shared with the service account
+          rclone --drive-service-account-file=./service-account.json lsd drive:1subHlJyVj0ca9ITUoyq9i89YlBgOYehV
