@@ -24,7 +24,7 @@ jobs:
           type = drive
           scope = drive
           service_account_file = ./service-account.json
-          root_folder_id = <YOUR_SHARED_FOLDER_ID>
+          root_folder_id = 1subHlJyVj0ca9ITUoyq9i89YlBgOYehV
           EOF
 
 
