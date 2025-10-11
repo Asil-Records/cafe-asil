@@ -1,25 +1,32 @@
-name: Test Google Drive Access
+name: Test Google Drive Access - Service Account
 
 on:
-    workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
-    test-drive:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
+  drive-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Install rclone
-              run: |
-                  curl https://rclone.org/install.sh | sudo bash
-                  rclone version
+      - name: Install rclone
+        run: |
+          curl https://rclone.org/install.sh | sudo bash
 
-            - name: Setup Service Account
-              run: |
-                echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_B64 }}" | base64 --decode > ./service-account.json
-                rclone config create drive drive \
-                  service_account_file=./service-account.json \
-                  root_folder_id=1subHlJyVj0ca9ITUoyq9i89YlBgOYehV
+      - name: Write Service Account JSON
+        run: |
+          echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_B64 }}" | base64 --decode > ./service-account.json
 
-            - name: List root folder
-              run: rclone lsd drive:/
+      - name: Create rclone config manually
+        run: |
+          cat <<EOL > ./rclone.conf
+[drive]
+type = drive
+scope = drive
+service_account_file = ./service-account.json
+root_folder_id = 1subHlJyVj0ca9ITUoyq9i89YlBgOYehV
+EOL
+
+      - name: List root folder in Drive
+        run: |
+          rclone --config ./rclone.conf lsd drive:/
