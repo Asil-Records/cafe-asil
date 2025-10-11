@@ -17,7 +17,9 @@ jobs:
             - name: Setup Service Account
               run: |
                 echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_B64 }}" | base64 --decode > ./service-account.json
-                rclone config create drive drive service_account_file=./service-account.json
+                rclone config create drive drive \
+                  service_account_file=./service-account.json \
+                  root_folder_id=1subHlJyVj0ca9ITUoyq9i89YlBgOYehV
 
             - name: List root folder
               run: rclone lsd drive:/
