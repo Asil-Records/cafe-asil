@@ -24,4 +24,4 @@ jobs:
           rclone lsd \
             --drive-service-account-file=./service-account.json \
             --drive-root-folder-id 1subHlJyVj0ca9ITUoyq9i89YlBgOYehV \
-            drive:
+            :
