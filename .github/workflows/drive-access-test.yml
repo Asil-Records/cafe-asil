@@ -2,6 +2,11 @@ name: Test Google Drive Access - Service Account
 
 on:
   workflow_dispatch:
+    inputs:
+      genre-input:
+        description: 'Input to trigger the genre workflow'
+        required: true
+        default: 'lofi'
 
 jobs:
   drive-test:
@@ -33,7 +38,7 @@ jobs:
 
       - name: Create a test folder inside shared folder
         run: |
-          rclone mkdir tempdrive:test-folder
+          rclone mkdir tempdrive:music/${ github.event.inputs.genre-input }/test
 
       - name: List contents of shared folder
         run: |
