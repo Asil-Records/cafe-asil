@@ -1,4 +1,4 @@
-name: Test Google Drive Access - Service Account
+name: Café Asil Session Generator - Service Account
 
 on:
   workflow_dispatch:
@@ -13,7 +13,6 @@ on:
           - sleepy-cafe
           - study&focus-mixes
           - morning-brew
-    
 
 jobs:
   create-session-folders:
@@ -23,7 +22,7 @@ jobs:
         run: |
           PLAYLIST_NAME="${{ github.event.inputs.playlist-name }}"
           SESSION_DATE=$(date +%Y%m%d)
-          TARGET_PATH="tempdrive:music/${PLAYLIST_NAME}/session-${SESSION_DATE}"
+          TARGET_PATH="cafe-asil:music/${PLAYLIST_NAME}/session-${SESSION_DATE}"
           ASSETS_PATH="${TARGET_PATH}/assets"
           echo "TARGET_PATH=${TARGET_PATH}" >> $GITHUB_ENV
           echo "ASSETS_PATH=${ASSETS_PATH}" >> $GITHUB_ENV
@@ -33,7 +32,7 @@ jobs:
 
       - name: Install rclone
         run: |
-          curl https://rclone.org/install.sh | sudo bash
+          curl https://rclone.org/install.sh | sudo bash  || { echo "Failed to install rclone"; exit 1; }
           rclone version
 
       - name: Write Service Account JSON
@@ -44,34 +43,29 @@ jobs:
 
       - name: Create temporary rclone remote
         run: |
-          rclone config create tempdrive drive \
+          rclone config create cafe-asil drive \
             service_account_file=./service-account.json \
             root_folder_id=${{ vars.GDRIVE_SHARED_FOLDER_ID }}
 
-      - name: List contents of shared folder
-        run: |
-          rclone lsd tempdrive:
-
       - name: Create session folder (if not exists)
         run: |
-          echo "Checking if folder exists: $TARGET_PATH"
+          echo "Checking if folder exists"
     
           if rclone lsd "${TARGET_PATH}" >/dev/null 2>&1; then
-          echo "Folder already exists, skipping creation."
+          echo "Folder already exists, skipping creation." >> $GITHUB_STEP_SUMMARY
           else
           echo "Folder not found, creating..."
-          rclone mkdir "${TARGET_PATH}"
-          echo "Folder created successfully."
+          rclone mkdir "${TARGET_PATH}" || { echo "Failed to create folder"; exit 1; }
+          echo "Folder created successfully." >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Create assets folder (if not exists)
         run: |
-          echo "Checking if assets folder exists: ${ASSETS_PATH}"
+          echo "Checking if assets folder exists"
           if rclone lsd "${ASSETS_PATH}" >/dev/null 2>&1; then
-          echo "Assets folder already exists, skipping creation."
+          echo "Assets folder already exists, skipping creation." >> $GITHUB_STEP_SUMMARY
           else
           echo "Assets folder not found, creating..."
-          rclone mkdir "${ASSETS_PATH}"
-          echo "Assets folder created successfully."
+          rclone mkdir "${ASSETS_PATH}" || { echo "Failed to create assets folder"; exit 1; }
+          echo "Assets folder created successfully." >> $GITHUB_STEP_SUMMARY
           fi
-          
