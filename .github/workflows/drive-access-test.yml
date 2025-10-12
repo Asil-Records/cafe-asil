@@ -3,10 +3,17 @@ name: Test Google Drive Access - Service Account
 on:
   workflow_dispatch:
     inputs:
-      genre-input:
-        description: 'Input to trigger the genre workflow'
+      playlist-name:
+        description: 'Input to trigger the playlist workflow'
         required: true
         default: 'lofi'
+        type: choice
+        options:
+          - lofi-moments
+          - sleepy-cafe
+          - study&focus-mixes
+          - morning-brew
+    
 
 jobs:
   drive-test:
@@ -36,6 +43,19 @@ jobs:
         run: |
           rclone lsd tempdrive:
 
-      - name: Create a test folder inside shared folder
+      - name: Create a test folder inside shared folder (if not exists)
         run: |
-          rclone mkdir tempdrive:music/${{ github.event.inputs.genre-input }}/session-$(date +%YYYY%MM%DD)
+          PLAYLIST_NAME="${{ github.event.inputs.playlist-name }}"
+          SESSION_DATE=$(date +%Y%m%d)
+          TARGET_PATH="music/${PLAYLIST_NAME}/session-${SESSION_DATE}"
+    
+          echo "Checking if folder exists: $TARGET_PATH"
+    
+          if rclone lsd "tempdrive:${TARGET_PATH}" >/dev/null 2>&1; then
+          echo "Folder already exists, skipping creation."
+          else
+          echo "Folder not found, creating..."
+          rclone mkdir "tempdrive:${TARGET_PATH}"
+          echo "Folder created successfully."
+          fi
+          
