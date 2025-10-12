@@ -38,7 +38,7 @@ jobs:
 
       - name: Create a test folder inside shared folder
         run: |
-          rclone mkdir tempdrive:music/${ github.event.inputs.genre-input }/test
+          rclone mkdir tempdrive:music/${{ github.event.inputs.genre-input }}/test
 
       - name: List contents of shared folder
         run: |
