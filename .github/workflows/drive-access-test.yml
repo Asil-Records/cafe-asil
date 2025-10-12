@@ -16,7 +16,7 @@ on:
     
 
 jobs:
-  drive-test:
+  create-session-folders:
     runs-on: ubuntu-latest
     steps:
       - name: Prepare workflow variables
@@ -24,8 +24,9 @@ jobs:
           PLAYLIST_NAME="${{ github.event.inputs.playlist-name }}"
           SESSION_DATE=$(date +%Y%m%d)
           TARGET_PATH="tempdrive:music/${PLAYLIST_NAME}/session-${SESSION_DATE}"
+          ASSETS_PATH="${TARGET_PATH}/assets"
           echo "TARGET_PATH=${TARGET_PATH}" >> $GITHUB_ENV
-          echo "TARGET_PATH=${TARGET_PATH}" >> $GITHUB_OUTPUT
+          echo "ASSETS_PATH=${ASSETS_PATH}" >> $GITHUB_ENV
 
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -51,7 +52,7 @@ jobs:
         run: |
           rclone lsd tempdrive:
 
-      - name: Create a test folder inside shared folder (if not exists)
+      - name: Create session folder (if not exists)
         run: |
           echo "Checking if folder exists: $TARGET_PATH"
     
@@ -61,5 +62,16 @@ jobs:
           echo "Folder not found, creating..."
           rclone mkdir "${TARGET_PATH}"
           echo "Folder created successfully."
+          fi
+
+      - name: Create assets folder (if not exists)
+        run: |
+          echo "Checking if assets folder exists: ${ASSETS_PATH}"
+          if rclone lsd "${ASSETS_PATH}" >/dev/null 2>&1; then
+          echo "Assets folder already exists, skipping creation."
+          else
+          echo "Assets folder not found, creating..."
+          rclone mkdir "${ASSETS_PATH}"
+          echo "Assets folder created successfully."
           fi
           
