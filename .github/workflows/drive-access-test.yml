@@ -49,23 +49,27 @@ jobs:
 
       - name: Create session folder (if not exists)
         run: |
-          echo "Checking if folder exists"
+          echo "Checking if session folder exists"
     
           if rclone lsd "${TARGET_PATH}" >/dev/null 2>&1; then
-          echo "Folder already exists, skipping creation." >> $GITHUB_STEP_SUMMARY
+          echo "Session folder already exists, skipping creation."
+          echo "${TARGET_PATH} already exists, nothing to do." >> $GITHUB_STEP_SUMMARY
           else
-          echo "Folder not found, creating..."
-          rclone mkdir "${TARGET_PATH}" || { echo "Failed to create folder"; exit 1; }
-          echo "Folder created successfully." >> $GITHUB_STEP_SUMMARY
+          echo "Session folder not found, creating..."
+          rclone mkdir "${TARGET_PATH}" || { echo "Failed to create session folder"; exit 1; }
+          echo "Session folder created successfully." 
+          echo "Created ${TARGET_PATH} successfully">> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Create assets folder (if not exists)
         run: |
           echo "Checking if assets folder exists"
           if rclone lsd "${ASSETS_PATH}" >/dev/null 2>&1; then
-          echo "Assets folder already exists, skipping creation." >> $GITHUB_STEP_SUMMARY
+          echo "Assets folder already exists, skipping creation."
+          echo "${ASSETS_PATH} already exists, nothing to do." >> $GITHUB_STEP_SUMMARY
           else
           echo "Assets folder not found, creating..."
           rclone mkdir "${ASSETS_PATH}" || { echo "Failed to create assets folder"; exit 1; }
-          echo "Assets folder created successfully." >> $GITHUB_STEP_SUMMARY
+          echo "Assets folder created successfully." 
+          echo "Created ${ASSETS_PATH} successfully.">> $GITHUB_STEP_SUMMARY
           fi
