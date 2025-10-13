@@ -81,19 +81,22 @@ jobs:
           echo "Downloading MP3s from ${TARGET_PATH}..."
           rclone copy "${TARGET_PATH}" ./session_audio --include "*.mp3" --progress
 
-      - name: Verify audio files and prepare list
+      - name: Prepare audio files for FFmpeg merge
         run: |
-          echo "Preparing file list for merge..."
-          ls -1 ./session_audio/*.mp3 > file_list.txt
-          echo "File list created:"
+          echo "🎵 Creating FFmpeg file list..."
+          find ./session_audio -type f -name "*.mp3" | sort | while read f; do
+            echo "file '$f'" >> file_list.txt
+          done
+      
+          echo "File list created for FFmpeg:"
           cat file_list.txt
-          echo ""
+      
           if [ ! -s file_list.txt ]; then
-            echo "No MP3 files found — cannot proceed."
+            echo "No MP3 files found — aborting merge."
             exit 1
           fi
-          # Create FFmpeg-friendly input list
-          sed -i 's/^/file /' file_list.txt
+      
+          echo "- Found $(wc -l < file_list.txt) tracks for merging." >> $GITHUB_STEP_SUMMARY
 
       - name: Merge audio with FFmpeg
         run: |
