@@ -4,35 +4,31 @@ on:
   workflow_dispatch:
     inputs:
       playlist-name:
-        description: 'Input to trigger the playlist workflow'
+        description: 'Choose playlist type'
         required: true
-        default: 'lofi'
+        default: 'lofi-moments'
         type: choice
         options:
           - lofi-moments
           - sleepy-cafe
           - study&focus-mixes
           - morning-brew
+      existing-session:
+        description: 'Enter existing session name (leave empty to create new)'
+        required: false
+        default: ''
 
 jobs:
-  create-session-folders:
+  prepare-session:
     runs-on: ubuntu-latest
-    steps:
-      - name: Prepare workflow variables
-        run: |
-          PLAYLIST_NAME="${{ github.event.inputs.playlist-name }}"
-          SESSION_DATE=$(date +%Y%m%d)
-          TARGET_PATH="cafe-asil:music/${PLAYLIST_NAME}/session-${SESSION_DATE}"
-          ASSETS_PATH="${TARGET_PATH}/assets"
-          echo "TARGET_PATH=${TARGET_PATH}" >> $GITHUB_ENV
-          echo "ASSETS_PATH=${ASSETS_PATH}" >> $GITHUB_ENV
 
+    steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Install rclone
         run: |
-          curl https://rclone.org/install.sh | sudo bash  || { echo "Failed to install rclone"; exit 1; }
+          curl https://rclone.org/install.sh | sudo bash || { echo "Failed to install rclone"; exit 1; }
           rclone version
 
       - name: Write Service Account JSON
@@ -47,29 +43,63 @@ jobs:
             service_account_file=./service-account.json \
             root_folder_id=${{ vars.GDRIVE_SHARED_FOLDER_ID }}
 
-      - name: Create session folder (if not exists)
+      - name: Prepare workflow variables
+        id: vars
         run: |
-          echo "Checking if session folder exists"
-    
-          if rclone lsd "${TARGET_PATH}" >/dev/null 2>&1; then
-          echo "Session folder already exists, skipping creation."
-          echo "- ${TARGET_PATH} already exists, nothing to do." >> $GITHUB_STEP_SUMMARY
+          PLAYLIST_NAME="${{ github.event.inputs.playlist-name }}"
+          EXISTING_SESSION="${{ github.event.inputs.existing-session }}"
+          SESSION_DATE=$(date +%Y%m%d)
+
+          if [ -n "$EXISTING_SESSION" ]; then
+            # Use existing session
+            TARGET_PATH="cafe-asil:music/${PLAYLIST_NAME}/${EXISTING_SESSION}"
+            NEW_SESSION_CREATED=false
+            echo "Using existing session folder: $TARGET_PATH"
           else
-          echo "Session folder not found, creating..."
-          rclone mkdir "${TARGET_PATH}" || { echo "Failed to create session folder"; exit 1; }
-          echo "Session folder created successfully." 
-          echo "- Created ${TARGET_PATH} successfully">> $GITHUB_STEP_SUMMARY
+            # Create new session
+            TARGET_PATH="cafe-asil:music/${PLAYLIST_NAME}/session-${SESSION_DATE}"
+            NEW_SESSION_CREATED=true
+            echo "No existing session specified, creating: $TARGET_PATH"
           fi
 
-      - name: Create assets folder (if not exists)
+          ASSETS_PATH="${TARGET_PATH}/assets"
+
+          echo "TARGET_PATH=${TARGET_PATH}" >> $GITHUB_ENV
+          echo "ASSETS_PATH=${ASSETS_PATH}" >> $GITHUB_ENV
+          echo "NEW_SESSION_CREATED=${NEW_SESSION_CREATED}" >> $GITHUB_ENV
+
+      - name: Create session folder if needed
+        if: env.NEW_SESSION_CREATED == 'true'
         run: |
-          echo "Checking if assets folder exists"
-          if rclone lsd "${ASSETS_PATH}" >/dev/null 2>&1; then
-          echo "Assets folder already exists, skipping creation."
-          echo "- ${ASSETS_PATH} already exists, nothing to do." >> $GITHUB_STEP_SUMMARY
+          echo "Checking if session folder exists..."
+          if rclone lsd "${TARGET_PATH}" >/dev/null 2>&1; then
+            echo "Session folder already exists, skipping creation."
+            echo "- ${TARGET_PATH} already exists, nothing to do." >> $GITHUB_STEP_SUMMARY
           else
-          echo "Assets folder not found, creating..."
-          rclone mkdir "${ASSETS_PATH}" || { echo "Failed to create assets folder"; exit 1; }
-          echo "Assets folder created successfully." 
-          echo "- Created ${ASSETS_PATH} successfully.">> $GITHUB_STEP_SUMMARY
+            echo "Session folder not found, creating..."
+            rclone mkdir "${TARGET_PATH}" || { echo "Failed to create session folder"; exit 1; }
+            echo "- Created ${TARGET_PATH} successfully" >> $GITHUB_STEP_SUMMARY
           fi
+
+      - name: Create assets folder (always ensure exists)
+        run: |
+          echo "Checking if assets folder exists..."
+          if rclone lsd "${ASSETS_PATH}" >/dev/null 2>&1; then
+            echo "Assets folder already exists, skipping creation."
+            echo "- ${ASSETS_PATH} already exists, nothing to do." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Assets folder not found, creating..."
+            rclone mkdir "${ASSETS_PATH}" || { echo "Failed to create assets folder"; exit 1; }
+            echo "- Created ${ASSETS_PATH} successfully" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Download all audio files from Drive session
+        run: |
+          echo "Downloading all files from ${TARGET_PATH}..."
+          mkdir -p ./session_audio
+          rclone copy "${TARGET_PATH}" ./session_audio --include "*.mp3" --progress
+
+      - name: Prepare for FFmpeg merge
+        run: |
+          echo "Preparing FFmpeg merge..."
+          ls -1 ./session_audio/*.mp3 || echo "No MP3 files found!"
