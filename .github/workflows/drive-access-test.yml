@@ -34,17 +34,13 @@ jobs:
           rclone version
           ffmpeg -version
 
-      - name: Write Service Account JSON
+      - name: Write rclone config
         run: |
-          cat > ./service-account.json <<EOF
-          ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf <<EOF
+          ${{ secrets.RCLONE_CONFIG }}
           EOF
-
-      - name: Configure rclone remote
-        run: |
-          rclone config create cafe-asil drive \
-            service_account_file=./service-account.json \
-            root_folder_id=${{ vars.GDRIVE_SHARED_FOLDER_ID }}
+          echo "Config file written."
 
       - name: Prepare workflow variables
         id: vars
