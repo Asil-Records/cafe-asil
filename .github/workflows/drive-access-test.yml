@@ -107,6 +107,34 @@ jobs:
           rclone copyto merged_output.mp3 "${ASSETS_PATH}/${MERGED_FILE}" --progress
           echo "- Uploaded merged file successfully" >> $GITHUB_STEP_SUMMARY
 
+      - name: Download all asset videos
+        run: |
+          echo "Downloading asset videos from Drive..."
+          mkdir -p ./assets
+          rclone copy "${ASSETS_PATH}" ./assets --include "*.mp4" --progress
+          echo "Assets downloaded successfully."
+          ls -l ./assets
+
+      - name: Merge MP4 files
+        run: |
+          echo "Merging MP4 files into one..."
+          mkdir -p ./output
+
+          # Create file list for ffmpeg
+          find ./assets -type f -name "*.mp4" | sort | sed "s/^/file '/;s/$/'/" > ./output/files.txt
+          cat ./output/files.txt
+
+          # Merge using ffmpeg concat demuxer
+          ffmpeg -f concat -safe 0 -i ./output/files.txt -c copy ./output/merged_video.mp4 -y
+
+          echo "Merged video created successfully at ./output/merged_video.mp4"
+
+      - name: Upload merged video back to Drive
+        run: |
+          echo "Uploading merged video to Drive..."
+          rclone copy ./output/merged_video.mp4 "${ASSETS_PATH}" --progress
+          echo "Merged video uploaded successfully." >> $GITHUB_STEP_SUMMARY
+
       - name: Add completion summary
         run: |
           echo "### ☕ Café Asil Session Summary" >> $GITHUB_STEP_SUMMARY
