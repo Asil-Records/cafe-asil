@@ -18,8 +18,12 @@ jobs:
       - name: Write rclone config
         run: |
           mkdir -p ~/.config/rclone
-          echo "${{ secrets.RCLONE_CONFIG }}" > ~/.config/rclone/rclone.conf
+          cat > ./service-account.json <<EOF
+          ${{ secrets.RCLONE_CONFIG }}
+          EOF
           echo "✅ Config file written."
+
+          
 
       - name: List root of Google Drive
         run: |
