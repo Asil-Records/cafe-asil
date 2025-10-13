@@ -18,7 +18,7 @@ jobs:
       - name: Write rclone config
         run: |
           mkdir -p ~/.config/rclone
-          cat > ./service-account.json <<EOF
+          cat > ~/.config/rclone/rclone.conf <<EOF
           ${{ secrets.RCLONE_CONFIG }}
           EOF
           echo "✅ Config file written."
