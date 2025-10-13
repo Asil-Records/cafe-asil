@@ -50,10 +50,10 @@ jobs:
           SESSION_DATE=$(date +%Y%m%d)
 
           if [ -n "$EXISTING_SESSION" ]; then
-            TARGET_PATH="cafe-asil:music/${PLAYLIST_NAME}/${EXISTING_SESSION}"
+            TARGET_PATH="cafe-asil:Asil-Records/music/${PLAYLIST_NAME}/${EXISTING_SESSION}"
             NEW_SESSION_CREATED=false
           else
-            TARGET_PATH="cafe-asil:music/${PLAYLIST_NAME}/session-${SESSION_DATE}"
+            TARGET_PATH="cafe-asil:Asil-Records/music/${PLAYLIST_NAME}/session-${SESSION_DATE}"
             NEW_SESSION_CREATED=true
           fi
 
