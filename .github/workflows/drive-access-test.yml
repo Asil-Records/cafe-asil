@@ -19,17 +19,20 @@ on:
         default: ''
 
 jobs:
-  prepare-session:
+  prepare-and-merge:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install rclone
+      - name: Install dependencies (rclone + ffmpeg)
         run: |
+          sudo apt update
+          sudo apt install -y ffmpeg
           curl https://rclone.org/install.sh | sudo bash || { echo "Failed to install rclone"; exit 1; }
           rclone version
+          ffmpeg -version
 
       - name: Write Service Account JSON
         run: |
@@ -37,7 +40,7 @@ jobs:
           ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
           EOF
 
-      - name: Create temporary rclone remote
+      - name: Configure rclone remote
         run: |
           rclone config create cafe-asil drive \
             service_account_file=./service-account.json \
@@ -51,55 +54,66 @@ jobs:
           SESSION_DATE=$(date +%Y%m%d)
 
           if [ -n "$EXISTING_SESSION" ]; then
-            # Use existing session
             TARGET_PATH="cafe-asil:music/${PLAYLIST_NAME}/${EXISTING_SESSION}"
             NEW_SESSION_CREATED=false
-            echo "Using existing session folder: $TARGET_PATH"
           else
-            # Create new session
             TARGET_PATH="cafe-asil:music/${PLAYLIST_NAME}/session-${SESSION_DATE}"
             NEW_SESSION_CREATED=true
-            echo "No existing session specified, creating: $TARGET_PATH"
           fi
 
           ASSETS_PATH="${TARGET_PATH}/assets"
+          MERGED_FILE="merged-${PLAYLIST_NAME}-${SESSION_DATE}.mp3"
 
           echo "TARGET_PATH=${TARGET_PATH}" >> $GITHUB_ENV
           echo "ASSETS_PATH=${ASSETS_PATH}" >> $GITHUB_ENV
+          echo "MERGED_FILE=${MERGED_FILE}" >> $GITHUB_ENV
           echo "NEW_SESSION_CREATED=${NEW_SESSION_CREATED}" >> $GITHUB_ENV
 
-      - name: Create session folder if needed
-        if: env.NEW_SESSION_CREATED == 'true'
+      - name: Ensure folders exist
         run: |
-          echo "Checking if session folder exists..."
-          if rclone lsd "${TARGET_PATH}" >/dev/null 2>&1; then
-            echo "Session folder already exists, skipping creation."
-            echo "- ${TARGET_PATH} already exists, nothing to do." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "Session folder not found, creating..."
-            rclone mkdir "${TARGET_PATH}" || { echo "Failed to create session folder"; exit 1; }
-            echo "- Created ${TARGET_PATH} successfully" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "Ensuring required folders exist..."
+          rclone mkdir "${TARGET_PATH}" || true
+          rclone mkdir "${ASSETS_PATH}" || true
 
-      - name: Create assets folder (always ensure exists)
+      - name: Download all session audio files
         run: |
-          echo "Checking if assets folder exists..."
-          if rclone lsd "${ASSETS_PATH}" >/dev/null 2>&1; then
-            echo "Assets folder already exists, skipping creation."
-            echo "- ${ASSETS_PATH} already exists, nothing to do." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "Assets folder not found, creating..."
-            rclone mkdir "${ASSETS_PATH}" || { echo "Failed to create assets folder"; exit 1; }
-            echo "- Created ${ASSETS_PATH} successfully" >> $GITHUB_STEP_SUMMARY
-          fi
-
-      - name: Download all audio files from Drive session
-        run: |
-          echo "Downloading all files from ${TARGET_PATH}..."
           mkdir -p ./session_audio
+          echo "Downloading MP3s from ${TARGET_PATH}..."
           rclone copy "${TARGET_PATH}" ./session_audio --include "*.mp3" --progress
 
-      - name: Prepare for FFmpeg merge
+      - name: Verify audio files and prepare list
         run: |
-          echo "Preparing FFmpeg merge..."
-          ls -1 ./session_audio/*.mp3 || echo "No MP3 files found!"
+          echo "Preparing file list for merge..."
+          ls -1 ./session_audio/*.mp3 > file_list.txt
+          echo "File list created:"
+          cat file_list.txt
+          echo ""
+          if [ ! -s file_list.txt ]; then
+            echo "No MP3 files found — cannot proceed."
+            exit 1
+          fi
+          # Create FFmpeg-friendly input list
+          sed -i 's/^/file /' file_list.txt
+
+      - name: Merge audio with FFmpeg
+        run: |
+          echo "Merging MP3s into one file..."
+          ffmpeg -f concat -safe 0 -i file_list.txt -c copy merged_output.mp3 || { echo "FFmpeg merge failed"; exit 1; }
+          echo "Merge completed successfully!"
+          ls -lh merged_output.mp3
+
+      - name: Upload merged file to Drive
+        run: |
+          echo "Uploading merged file to ${ASSETS_PATH}/${MERGED_FILE}..."
+          rclone copyto merged_output.mp3 "${ASSETS_PATH}/${MERGED_FILE}" --progress
+          echo "- Uploaded merged file successfully" >> $GITHUB_STEP_SUMMARY
+
+      - name: Add completion summary
+        run: |
+          echo "### ☕ Café Asil Session Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Playlist: **${{ github.event.inputs.playlist-name }}**" >> $GITHUB_STEP_SUMMARY
+          echo "- Session Path: **${TARGET_PATH}**" >> $GITHUB_STEP_SUMMARY
+          echo "- Merged File: **${ASSETS_PATH}/${MERGED_FILE}**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Workflow completed successfully 🎵" >> $GITHUB_STEP_SUMMARY
