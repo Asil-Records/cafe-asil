@@ -66,9 +66,29 @@ jobs:
       - name: Ensure folders exist
         run: |
           echo "Ensuring required folders exist..."
-          rclone mkdir "${TARGET_PATH}" || true
-          rclone mkdir "${ASSETS_PATH}" || true
-
+      
+          # Check & create TARGET_PATH
+          if rclone lsd "${TARGET_PATH}" >/dev/null 2>&1; then
+            echo "Session folder already exists, skipping creation."
+            echo "- ${TARGET_PATH} already exists." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Session folder not found, creating..."
+            rclone mkdir "${TARGET_PATH}" || { echo "Failed to create ${TARGET_PATH}"; exit 1; }
+            echo "Session folder created successfully."
+            echo "- Created ${TARGET_PATH}" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+          # Check & create ASSETS_PATH
+          if rclone lsd "${ASSETS_PATH}" >/dev/null 2>&1; then
+            echo "Assets folder already exists, skipping creation."
+            echo "- ${ASSETS_PATH} already exists." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Assets folder not found, creating..."
+            rclone mkdir "${ASSETS_PATH}" || { echo "Failed to create ${ASSETS_PATH}"; exit 1; }
+            echo "Assets folder created successfully."
+            echo "- Created ${ASSETS_PATH}" >> $GITHUB_STEP_SUMMARY
+          fi
+        
       - name: Download all session audio files
         if: env.NEW_SESSION_CREATED != 'true'
         run: |
