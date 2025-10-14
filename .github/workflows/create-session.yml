@@ -44,10 +44,8 @@ jobs:
 
           if [ -n "$EXISTING_SESSION" ]; then
             TARGET_PATH="cafe-asil:Asil-Records/music/${PLAYLIST_NAME}/${EXISTING_SESSION}"
-            NEW_SESSION_CREATED=false
           else
             TARGET_PATH="cafe-asil:Asil-Records/music/${PLAYLIST_NAME}/session-${SESSION_DATE}"
-            NEW_SESSION_CREATED=true
           fi
 
           ASSETS_PATH="${TARGET_PATH}/assets"
@@ -63,31 +61,39 @@ jobs:
           echo "FINAL_MP4_FILE=${FINAL_MP4_FILE}" >> $GITHUB_ENV
           echo "NEW_SESSION_CREATED=${NEW_SESSION_CREATED}" >> $GITHUB_ENV
 
-      - name: Ensure folders exist
+      - name: Ensure folders exist and set flag
         run: |
           echo "Ensuring required folders exist..."
+          NEW_SESSION_CREATED=false
       
-          # Check & create TARGET_PATH
+          # Check if the session (TARGET_PATH) exists
           if rclone lsd "${TARGET_PATH}" >/dev/null 2>&1; then
-            echo "Session folder already exists, skipping creation."
+            echo "Session folder already exists."
             echo "- ${TARGET_PATH} already exists." >> $GITHUB_STEP_SUMMARY
+      
+            # Session exists, check assets folder inside it
+            if rclone lsd "${ASSETS_PATH}" >/dev/null 2>&1; then
+              echo "Assets folder already exists, skipping creation."
+              echo "- ${ASSETS_PATH} already exists." >> $GITHUB_STEP_SUMMARY
+            else
+              echo "Assets folder missing, creating..."
+              rclone mkdir "${ASSETS_PATH}" || { echo "Failed to create ${ASSETS_PATH}"; exit 1; }
+              echo "Assets folder created successfully."
+              echo "- Created ${ASSETS_PATH}" >> $GITHUB_STEP_SUMMARY
+              NEW_SESSION_CREATED=true
+            fi
+      
           else
-            echo "Session folder not found, creating..."
+            # Session does not exist → create both at once
+            echo "Session folder not found, creating both session and assets folders..."
             rclone mkdir "${TARGET_PATH}" || { echo "Failed to create ${TARGET_PATH}"; exit 1; }
-            echo "Session folder created successfully."
-            echo "- Created ${TARGET_PATH}" >> $GITHUB_STEP_SUMMARY
+            rclone mkdir "${ASSETS_PATH}" || { echo "Failed to create ${ASSETS_PATH}"; exit 1; }
+            echo "- Created ${TARGET_PATH} and ${ASSETS_PATH}" >> $GITHUB_STEP_SUMMARY
+            NEW_SESSION_CREATED=true
           fi
       
-          # Check & create ASSETS_PATH
-          if rclone lsd "${ASSETS_PATH}" >/dev/null 2>&1; then
-            echo "Assets folder already exists, skipping creation."
-            echo "- ${ASSETS_PATH} already exists." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "Assets folder not found, creating..."
-            rclone mkdir "${ASSETS_PATH}" || { echo "Failed to create ${ASSETS_PATH}"; exit 1; }
-            echo "Assets folder created successfully."
-            echo "- Created ${ASSETS_PATH}" >> $GITHUB_STEP_SUMMARY
-          fi
+          # Export flag for later steps
+          echo "NEW_SESSION_CREATED=${NEW_SESSION_CREATED}" >> $GITHUB_ENV
         
       - name: Download all session audio files
         if: env.NEW_SESSION_CREATED != 'true'
