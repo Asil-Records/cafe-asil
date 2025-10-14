@@ -60,11 +60,14 @@ jobs:
           ASSETS_PATH="${TARGET_PATH}/assets"
           MERGED_MP3_FILE="merged-${PLAYLIST_NAME}-${SESSION_DATE}.mp3"
           MERGED_MP4_FILE="merged-${PLAYLIST_NAME}-${SESSION_DATE}.mp4"
+          FINAL_MP4_FILE="final-${PLAYLIST_NAME}-${SESSION_DATE}.mp4"
+
 
           echo "TARGET_PATH=${TARGET_PATH}" >> $GITHUB_ENV
           echo "ASSETS_PATH=${ASSETS_PATH}" >> $GITHUB_ENV
           echo "MERGED_MP3_FILE=${MERGED_MP3_FILE}" >> $GITHUB_ENV
           echo "MERGED_MP4_FILE=${MERGED_MP4_FILE}" >> $GITHUB_ENV
+          echo "FINAL_MP4_FILE=${FINAL_MP4_FILE}" >> $GITHUB_ENV
           echo "NEW_SESSION_CREATED=${NEW_SESSION_CREATED}" >> $GITHUB_ENV
 
       - name: Ensure folders exist
@@ -145,8 +148,36 @@ jobs:
       - name: Upload merged video back to Drive
         run: |
           echo "Uploading merged video to Drive..."
-          rclone copy merged_video.mp4 "${ASSETS_PATH}" --progress
+          rclone copy merged_video.mp4 "${ASSETS_PATH}/${MERGED_MP4_FILE}" --progress
           echo "Merged video uploaded successfully." >> $GITHUB_STEP_SUMMARY
+
+      - name: Merge merged video and audio into final output
+        run: |
+          echo "Merging mp4 and mp3 into final_output.mp4..."
+
+          # Ensure both files exist
+          if [ ! -f merged_video.mp4 ]; then
+            echo "merged_video.mp4 not found!"
+            exit 1
+          fi
+
+          if [ ! -f merged_output.mp3 ]; then
+            echo "merged_output.mp3 not found!"
+            exit 1
+          fi
+
+          # Merge audio and video
+          ffmpeg -i merged_video.mp4 -i merged_output.mp3 \
+            -c:v copy -c:a aac -shortest final_output.mp4 -y
+
+          echo "✅ Final video created successfully at final_output.mp4"
+          echo "- Merged final_output.mp4 successfully." >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload final video back to Drive
+        run: |
+          echo "Uploading final version to Drive..."
+          rclone copy final_output.mp4 "${ASSETS_PATH}/${FINAL_MP4_FILE}" --progress
+          echo "Finished video uploaded successfully." >> $GITHUB_STEP_SUMMARY
 
       - name: Add completion summary
         run: |
@@ -156,5 +187,6 @@ jobs:
           echo "- Session Path: **${TARGET_PATH}**" >> $GITHUB_STEP_SUMMARY
           echo "- Merged mp3 File: **${ASSETS_PATH}/${MERGED_MP3_FILE}**" >> $GITHUB_STEP_SUMMARY
           echo "- Merged mp4 File: **${ASSETS_PATH}/${MERGED_MP4_FILE}**" >> $GITHUB_STEP_SUMMARY
+          echo "- Finished mp4 File: **${ASSETS_PATH}/${MERGED_MP4_FILE}**" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Workflow completed successfully 🎵" >> $GITHUB_STEP_SUMMARY
