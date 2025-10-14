@@ -21,7 +21,8 @@ on:
 jobs:
   prepare-and-merge:
     runs-on: ubuntu-latest
-
+    container:
+      image: ghcr.io/asil-records/create-session-image:v1
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
