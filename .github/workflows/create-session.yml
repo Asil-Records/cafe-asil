@@ -1,4 +1,4 @@
-name: Café Asil Session Generator - Service Account
+name: Café Asil Session Generator
 
 on:
   workflow_dispatch:
