@@ -70,12 +70,14 @@ jobs:
           rclone mkdir "${ASSETS_PATH}" || true
 
       - name: Download all session audio files
+        if: env.NEW_SESSION_CREATED != 'true'
         run: |
           mkdir -p ./session_audio
           echo "Downloading MP3s from ${TARGET_PATH}..."
           rclone copy "${TARGET_PATH}" ./session_audio --include "*.mp3" --progress
 
       - name: Prepare audio files for FFmpeg merge
+        if: env.NEW_SESSION_CREATED != 'true'
         run: |
           echo "🎵 Creating FFmpeg file list..."
           find ./session_audio -type f -name "*.mp3" | sort | while read f; do
@@ -93,6 +95,7 @@ jobs:
           echo "- Found $(wc -l < mp3_file_list.txt) tracks for merging." >> $GITHUB_STEP_SUMMARY
 
       - name: Merge audio with FFmpeg
+        if: env.NEW_SESSION_CREATED != 'true'
         run: |
           echo "Merging MP3s into one file..."
           ffmpeg -f concat -safe 0 -i mp3_file_list.txt -c copy merged_output.mp3 -y || { echo "FFmpeg merge failed"; exit 1; }
@@ -100,12 +103,14 @@ jobs:
           ls -lh merged_output.mp3
 
       - name: Upload merged file to Drive
+        if: env.NEW_SESSION_CREATED != 'true'
         run: |
           echo "Uploading merged file to ${ASSETS_PATH}/${MERGED_MP3_FILE}..."
           rclone copyto merged_output.mp3 "${ASSETS_PATH}/${MERGED_MP3_FILE}" --progress
           echo "- Uploaded merged file successfully" >> $GITHUB_STEP_SUMMARY
 
       - name: Download all asset videos
+        if: env.NEW_SESSION_CREATED != 'true'
         run: |
           echo "Downloading asset videos from Drive..."
           mkdir -p ./assets
@@ -114,6 +119,7 @@ jobs:
           ls -l ./assets
 
       - name: Merge MP4 files
+        if: env.NEW_SESSION_CREATED != 'true'
         run: |
 
           # Create file list for ffmpeg
@@ -132,6 +138,7 @@ jobs:
           echo "- Found $(wc -l < mp4_file_list.txt) tracks for merging." >> $GITHUB_STEP_SUMMARY
 
       - name: Merge audio with FFmpeg
+        if: env.NEW_SESSION_CREATED != 'true'
         run: |
           echo "Merging MP4s into one file..."
           ffmpeg -f concat -safe 0 -i mp4_file_list.txt -c copy merged_video.mp4 -y || { echo "FFmpeg merge failed"; exit 1; }
@@ -139,12 +146,14 @@ jobs:
           ls -lh merged_video.mp4
 
       - name: Upload merged video back to Drive
+        if: env.NEW_SESSION_CREATED != 'true'
         run: |
           echo "Uploading merged video to Drive..."
           rclone copy merged_video.mp4 "${ASSETS_PATH}/${MERGED_MP4_FILE}" --progress
           echo "Merged video uploaded successfully." >> $GITHUB_STEP_SUMMARY
 
       - name: Merge merged video and audio into final output
+        if: env.NEW_SESSION_CREATED != 'true'
         run: |
           echo "Merging mp4 and mp3 into final_output.mp4..."
 
@@ -167,12 +176,14 @@ jobs:
           echo "- Merged final_output.mp4 successfully." >> $GITHUB_STEP_SUMMARY
 
       - name: Upload final video back to Drive
+        if: env.NEW_SESSION_CREATED != 'true'
         run: |
           echo "Uploading final version to Drive..."
           rclone copy final_output.mp4 "${ASSETS_PATH}/${FINAL_MP4_FILE}" --progress
           echo "Finished video uploaded successfully." >> $GITHUB_STEP_SUMMARY
 
       - name: Add completion summary
+        if: env.NEW_SESSION_CREATED != 'true'
         run: |
           echo "### ☕ Café Asil Session Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
