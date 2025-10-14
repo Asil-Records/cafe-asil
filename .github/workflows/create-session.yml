@@ -50,15 +50,11 @@ jobs:
           fi
 
           ASSETS_PATH="${TARGET_PATH}/assets"
-          MERGED_MP3_FILE="merged-${PLAYLIST_NAME}-${SESSION_DATE}.mp3"
-          MERGED_MP4_FILE="merged-${PLAYLIST_NAME}-${SESSION_DATE}.mp4"
-          FINAL_MP4_FILE="final-${PLAYLIST_NAME}-${SESSION_DATE}.mp4"
+          FINAL_MP4_FILE="rendered-${PLAYLIST_NAME}-${SESSION_DATE}.mp4"
 
           echo "SESSION_NAME=${SESSION_NAME}" >> GITHUB_ENV
           echo "TARGET_PATH=${TARGET_PATH}" >> $GITHUB_ENV
           echo "ASSETS_PATH=${ASSETS_PATH}" >> $GITHUB_ENV
-          echo "MERGED_MP3_FILE=${MERGED_MP3_FILE}" >> $GITHUB_ENV
-          echo "MERGED_MP4_FILE=${MERGED_MP4_FILE}" >> $GITHUB_ENV
           echo "FINAL_MP4_FILE=${FINAL_MP4_FILE}" >> $GITHUB_ENV
           echo "NEW_SESSION_CREATED=${NEW_SESSION_CREATED}" >> $GITHUB_ENV
 
@@ -205,8 +201,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- Playlist: **${{ github.event.inputs.playlist-name }}**" >> $GITHUB_STEP_SUMMARY
           echo "- Session Path: **${TARGET_PATH}**" >> $GITHUB_STEP_SUMMARY
-          echo "- Merged mp3 File: **${ASSETS_PATH}/${MERGED_MP3_FILE}**" >> $GITHUB_STEP_SUMMARY
-          echo "- Merged mp4 File: **${ASSETS_PATH}/${MERGED_MP4_FILE}**" >> $GITHUB_STEP_SUMMARY
-          echo "- Finished mp4 File: **${ASSETS_PATH}/${MERGED_MP4_FILE}**" >> $GITHUB_STEP_SUMMARY
+          echo "- Finished mp4 File: **${ASSETS_PATH}/${FINAL_MP4_FILE}**" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Workflow completed successfully 🎵" >> $GITHUB_STEP_SUMMARY
