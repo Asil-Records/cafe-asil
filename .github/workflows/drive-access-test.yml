@@ -167,8 +167,8 @@ jobs:
           fi
 
           # Merge audio and video
-          ffmpeg -i merged_video.mp4 -i merged_output.mp3 \
-            -c:v copy -c:a aac -shortest final_output.mp4 -y
+          ffmpeg -stream_loop -1 -i merged_video.mp4 -i merged_output.mp3 \
+            -shortest -c:v libx264 -c:a aac -pix_fmt yuv420p final_output.mp4 -y
 
           echo "✅ Final video created successfully at final_output.mp4"
           echo "- Merged final_output.mp4 successfully." >> $GITHUB_STEP_SUMMARY
