@@ -1,0 +1,193 @@
+name: Café Asil Session Generator - Service Account
+
+on:
+  workflow_dispatch:
+    inputs:
+      playlist-name:
+        description: 'Choose playlist type'
+        required: true
+        default: 'lofi-moments'
+        type: choice
+        options:
+          - lofi-moments
+          - sleepy-cafe
+          - study&focus-mixes
+          - morning-brew
+      existing-session:
+        description: 'Enter existing session name (leave empty to create new)'
+        required: false
+        default: ''
+
+jobs:
+  prepare-and-merge:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/asil-records/create-session-image:v1
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (rclone + ffmpeg)
+        run: |
+          sudo apt update
+          sudo apt install -y ffmpeg
+          curl https://rclone.org/install.sh | sudo bash || { echo "Failed to install rclone"; exit 1; }
+          rclone version
+          ffmpeg -version
+
+      - name: Write rclone config
+        run: |
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf <<EOF
+          ${{ secrets.RCLONE_CONFIG }}
+          EOF
+          echo "Config file written."
+
+      - name: Prepare workflow variables
+        id: vars
+        run: |
+          PLAYLIST_NAME="${{ github.event.inputs.playlist-name }}"
+          EXISTING_SESSION="${{ github.event.inputs.existing-session }}"
+          SESSION_DATE=$(date +%Y%m%d)
+
+          if [ -n "$EXISTING_SESSION" ]; then
+            TARGET_PATH="cafe-asil:Asil-Records/music/${PLAYLIST_NAME}/${EXISTING_SESSION}"
+            NEW_SESSION_CREATED=false
+          else
+            TARGET_PATH="cafe-asil:Asil-Records/music/${PLAYLIST_NAME}/session-${SESSION_DATE}"
+            NEW_SESSION_CREATED=true
+          fi
+
+          ASSETS_PATH="${TARGET_PATH}/assets"
+          MERGED_MP3_FILE="merged-${PLAYLIST_NAME}-${SESSION_DATE}.mp3"
+          MERGED_MP4_FILE="merged-${PLAYLIST_NAME}-${SESSION_DATE}.mp4"
+          FINAL_MP4_FILE="final-${PLAYLIST_NAME}-${SESSION_DATE}.mp4"
+
+
+          echo "TARGET_PATH=${TARGET_PATH}" >> $GITHUB_ENV
+          echo "ASSETS_PATH=${ASSETS_PATH}" >> $GITHUB_ENV
+          echo "MERGED_MP3_FILE=${MERGED_MP3_FILE}" >> $GITHUB_ENV
+          echo "MERGED_MP4_FILE=${MERGED_MP4_FILE}" >> $GITHUB_ENV
+          echo "FINAL_MP4_FILE=${FINAL_MP4_FILE}" >> $GITHUB_ENV
+          echo "NEW_SESSION_CREATED=${NEW_SESSION_CREATED}" >> $GITHUB_ENV
+
+      - name: Ensure folders exist
+        run: |
+          echo "Ensuring required folders exist..."
+          rclone mkdir "${TARGET_PATH}" || true
+          rclone mkdir "${ASSETS_PATH}" || true
+
+      - name: Download all session audio files
+        run: |
+          mkdir -p ./session_audio
+          echo "Downloading MP3s from ${TARGET_PATH}..."
+          rclone copy "${TARGET_PATH}" ./session_audio --include "*.mp3" --progress
+
+      - name: Prepare audio files for FFmpeg merge
+        run: |
+          echo "🎵 Creating FFmpeg file list..."
+          find ./session_audio -type f -name "*.mp3" | sort | while read f; do
+            echo "file '$f'" >> mp3_file_list.txt
+          done
+      
+          echo "File list created for FFmpeg:"
+          cat mp3_file_list.txt
+      
+          if [ ! -s mp3_file_list.txt ]; then
+            echo "No MP3 files found — aborting merge."
+            exit 1
+          fi
+      
+          echo "- Found $(wc -l < mp3_file_list.txt) tracks for merging." >> $GITHUB_STEP_SUMMARY
+
+      - name: Merge audio with FFmpeg
+        run: |
+          echo "Merging MP3s into one file..."
+          ffmpeg -f concat -safe 0 -i mp3_file_list.txt -c copy merged_output.mp3 -y || { echo "FFmpeg merge failed"; exit 1; }
+          echo "Merge completed successfully!"
+          ls -lh merged_output.mp3
+
+      - name: Upload merged file to Drive
+        run: |
+          echo "Uploading merged file to ${ASSETS_PATH}/${MERGED_MP3_FILE}..."
+          rclone copyto merged_output.mp3 "${ASSETS_PATH}/${MERGED_MP3_FILE}" --progress
+          echo "- Uploaded merged file successfully" >> $GITHUB_STEP_SUMMARY
+
+      - name: Download all asset videos
+        run: |
+          echo "Downloading asset videos from Drive..."
+          mkdir -p ./assets
+          rclone copy "${ASSETS_PATH}" ./assets --include "*.mp4" --progress
+          echo "Assets downloaded successfully."
+          ls -l ./assets
+
+      - name: Merge MP4 files
+        run: |
+
+          # Create file list for ffmpeg
+          find ./assets -maxdepth 1 -type f -name "*.mp4" | sort | while read f; do
+            echo "file '$f'" >> mp4_file_list.txt
+          done
+
+          echo "File list for ffmpeg:"
+          cat mp4_file_list.txt
+
+          if [ ! -s mp4_file_list.txt ]; then
+            echo "No mp4 files found — aborting merge."
+            exit 1
+          fi
+      
+          echo "- Found $(wc -l < mp4_file_list.txt) tracks for merging." >> $GITHUB_STEP_SUMMARY
+
+      - name: Merge audio with FFmpeg
+        run: |
+          echo "Merging MP4s into one file..."
+          ffmpeg -f concat -safe 0 -i mp4_file_list.txt -c copy merged_video.mp4 -y || { echo "FFmpeg merge failed"; exit 1; }
+          echo "Merge completed successfully!"
+          ls -lh merged_video.mp4
+
+      - name: Upload merged video back to Drive
+        run: |
+          echo "Uploading merged video to Drive..."
+          rclone copy merged_video.mp4 "${ASSETS_PATH}/${MERGED_MP4_FILE}" --progress
+          echo "Merged video uploaded successfully." >> $GITHUB_STEP_SUMMARY
+
+      - name: Merge merged video and audio into final output
+        run: |
+          echo "Merging mp4 and mp3 into final_output.mp4..."
+
+          # Ensure both files exist
+          if [ ! -f merged_video.mp4 ]; then
+            echo "merged_video.mp4 not found!"
+            exit 1
+          fi
+
+          if [ ! -f merged_output.mp3 ]; then
+            echo "merged_output.mp3 not found!"
+            exit 1
+          fi
+
+          # Merge audio and video
+          ffmpeg -stream_loop -1 -i merged_video.mp4 -i merged_output.mp3 \
+            -shortest -c:v libx264 -c:a aac -pix_fmt yuv420p final_output.mp4 -y
+
+          echo "✅ Final video created successfully at final_output.mp4"
+          echo "- Merged final_output.mp4 successfully." >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload final video back to Drive
+        run: |
+          echo "Uploading final version to Drive..."
+          rclone copy final_output.mp4 "${ASSETS_PATH}/${FINAL_MP4_FILE}" --progress
+          echo "Finished video uploaded successfully." >> $GITHUB_STEP_SUMMARY
+
+      - name: Add completion summary
+        run: |
+          echo "### ☕ Café Asil Session Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Playlist: **${{ github.event.inputs.playlist-name }}**" >> $GITHUB_STEP_SUMMARY
+          echo "- Session Path: **${TARGET_PATH}**" >> $GITHUB_STEP_SUMMARY
+          echo "- Merged mp3 File: **${ASSETS_PATH}/${MERGED_MP3_FILE}**" >> $GITHUB_STEP_SUMMARY
+          echo "- Merged mp4 File: **${ASSETS_PATH}/${MERGED_MP4_FILE}**" >> $GITHUB_STEP_SUMMARY
+          echo "- Finished mp4 File: **${ASSETS_PATH}/${MERGED_MP4_FILE}**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Workflow completed successfully 🎵" >> $GITHUB_STEP_SUMMARY
