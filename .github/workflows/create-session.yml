@@ -27,14 +27,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install dependencies (rclone + ffmpeg)
-        run: |
-          sudo apt update
-          sudo apt install -y ffmpeg
-          curl https://rclone.org/install.sh | sudo bash || { echo "Failed to install rclone"; exit 1; }
-          rclone version
-          ffmpeg -version
-
       - name: Write rclone config
         run: |
           mkdir -p ~/.config/rclone
