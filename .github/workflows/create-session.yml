@@ -191,7 +191,7 @@ jobs:
         if: env.NEW_SESSION_CREATED != 'true'
         run: |
           echo "Uploading final version to Drive..."
-          rclone copy final_output.mp4 "${ASSETS_PATH}/${FINAL_MP4_FILE}" --progress
+          rclone copy final_output.mp4 "${ASSETS_PATH}/${FINAL_MP4_FILE}" --drive-chunk-size=128M --transfers=4 --checkers=8 -q
           echo "Finished video uploaded successfully." >> $GITHUB_STEP_SUMMARY
 
       - name: Add completion summary
