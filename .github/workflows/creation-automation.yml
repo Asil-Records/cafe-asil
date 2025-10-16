@@ -46,9 +46,9 @@ jobs:
                 REMOTE_RAW_AUDIO="${REMOTE_BASE}/raw_audios/${PLAYLIST_NAME}"
                 REMOTE_SESSION_BASE="${REMOTE_BASE}/sessions"
                 REMOTE_SESSION_BASE_DIR="${REMOTE_SESSION_BASE}/session_${SESSION_DATE}_${PLAYLIST_NAME}"
-                REMOTE_SESSION_AUDIO_DIR="${SESSION_DIR}/assets/audios"
-                REMOTE_SESSION_IMAGE_DIR="${SESSION_DIR}/assets/images"
-                REMOTE_SESSION_MERGED_DIR="${SESSION_DIR}/merged"
+                REMOTE_SESSION_AUDIO_DIR="assets/audios"
+                REMOTE_SESSION_IMAGE_DIR="assets/images"
+                REMOTE_SESSION_MERGED_DIR="merged"
 
                 echo "PLAYLIST_NAME=$PLAYLIST_NAME" >> $GITHUB_ENV
                 echo "REQUESTED_COUNT=$REQUESTED_COUNT" >> $GITHUB_ENV
@@ -72,9 +72,9 @@ jobs:
             - name: Create session folders
               run: |
                 echo "🔹 Creating session folders..."
-                rclone mkdir "${REMOTE_SESSION_MERGED_DIR}"
-                rclone mkdir "${REMOTE_SESSION_AUDIO_DIR}"
-                rclone mkdir "${REMOTE_SESSION_IMAGE_DIR}"
+                rclone mkdir "${SESSION_DIR}/${REMOTE_SESSSION_MERGED_DIR}"
+                rclone mkdir "${SESSION_DIR}/${REMOTE_SESSION_AUDIO_DIR}"
+                rclone mkdir "${SESSION_DIR}/${REMOTE_SESSION_IMAGE_DIR}"
 
             - name: Pull requested audio files
               shell: bash
@@ -84,8 +84,8 @@ jobs:
             - name: Download all session audio files
               run: |
                 mkdir -p ./session_audio
-                echo "Downloading MP3s from ${REMOTE_SESSION_AUDIO_DIR}..."
-                rclone --transfers=5 copy "${REMOTE_SESSION_AUDIO_DIR}" ./session_audio --include "*.mp3" --progress
+                echo "Downloading MP3s from ${SESSION_DIR}/${REMOTE_SESSION_AUDIO_DIR}..."
+                rclone --transfers=5 copy "${SESSION_DIR}/${REMOTE_SESSION_AUDIO_DIR}" ./session_audio --include "*.mp3" --progress
 
             
 
