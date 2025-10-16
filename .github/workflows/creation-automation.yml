@@ -33,6 +33,7 @@ jobs:
 
             - name: Prepare variables
               id: vars
+              shell: bash
               run: |
                 PLAYLIST_NAME="${{ github.event.inputs.playlist-name }}"
                 SESSION_DATE=$(date +%Y%m%d)
