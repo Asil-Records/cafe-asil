@@ -15,7 +15,7 @@ on:
       requested-count:
         description: 'Total count of songs to create content'
         required: true
-        default: '0'
+        default: '10'
         type: 'string'
 
 jobs:
@@ -61,5 +61,5 @@ jobs:
             - name: Update session path
               shell: bash
               run: |
-                  ./scripts/update_session_path.sh "${REMOTE_SESSION_BASE_DIR }" "${REMOTE_SESSION_BASE}"
+                  ./scripts/update_session_path.sh "${REMOTE_SESSION_BASE_DIR}" "${REMOTE_SESSION_BASE}"
 
