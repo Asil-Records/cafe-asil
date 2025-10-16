@@ -1,0 +1,53 @@
+name: Café Asil Content Automation
+
+on:
+  workflow_dispatch:
+    inputs:
+      playlist-name:
+        description: 'Choose playlist type'
+        required: true
+        type: choice
+        options:
+          - lofi-moments
+          - sleepy-cafe
+          - morning-brew
+
+jobs:
+    content_creation:
+        runs-on: ubuntu-latest
+        container:
+            image: ghcr.io/asil-records/create-session-image:v1
+        
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v4
+
+            - name: Write rclone config
+              run: |
+                mkdir -p ~/.config/rclone
+                cat > ~/.config/rclone/rclone.conf <<EOF
+                ${{ secrets.RCLONE_CONFIG }}
+                EOF
+                echo "Config file written."
+
+            - name: Prepare variables
+              id: vars
+              run: |
+                PLAYLIST_NAME="${{ github.event.inputs.playlist-name }}"
+                SESSION_DATE=$(date +%Y%m%d)
+                BASE_DIR="cafe-asil:Asil-Records/cafe-asil"
+                SESSION_DIR="${BASE_DIR}/sessions/session_${SESSION_DATE}-${PLAYLIST_NAME}
+
+                # Check if session folder already exists, and if so, increment suffix
+                COUNTER=1
+                FINAL_SESSION_DIR=$SESSION_DIR
+                while [ -d "$FINAL_SESSION_DIR" ]; do
+                    FINAL_SESSION_DIR="${SESSION_DIR}_${COUNTER}"
+                    COUNTER=$((COUNTER+1))
+                done
+
+                mkdir -p "$FINAL_SESSION_DIR/assets/audio" "$FINAL_SESSION_DIR/assets/video" "$FINAL_SESSION_DIR/merged"
+
+                echo "FINAL_SESSION_DIR=$FINAL_SESSION_DIR" >> $GITHUB_ENV
+                echo "Session directory created: $FINAL_SESSION_DIR"
+
