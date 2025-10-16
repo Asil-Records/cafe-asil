@@ -30,7 +30,7 @@ echo "$FILES" | while IFS= read -r f; do
   # Trim whitespace and ensure the file name is clean
   f=$(echo "$f" | xargs)
   echo "Copying: $f to $DEST"
-  rclone move --transfers=3 "$REMOTE_RAW_AUDIO/$f" "$DEST/"
+  rclone move --transfers=5 "$REMOTE_RAW_AUDIO/$f" "$DEST/"
 done
 
 echo "✅ Copied $COUNT audio files to $DEST"

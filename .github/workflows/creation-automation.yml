@@ -46,12 +46,18 @@ jobs:
                 REMOTE_RAW_AUDIO="${REMOTE_BASE}/raw_audios/${PLAYLIST_NAME}"
                 REMOTE_SESSION_BASE="${REMOTE_BASE}/sessions"
                 REMOTE_SESSION_BASE_DIR="${REMOTE_SESSION_BASE}/session_${SESSION_DATE}_${PLAYLIST_NAME}"
+                REMOTE_SESSION_AUDIO_DIR="${SESSION_DIR}/assets/audios"
+                REMOTE_SESSION_IMAGE_DIR="${SESSION_DIR}/assets/images"
+                REMOTE_SESSION_MERGED_DIR="${SESSION_DIR}/merged"
 
                 echo "PLAYLIST_NAME=$PLAYLIST_NAME" >> $GITHUB_ENV
                 echo "REQUESTED_COUNT=$REQUESTED_COUNT" >> $GITHUB_ENV
                 echo "REMOTE_RAW_AUDIO=$REMOTE_RAW_AUDIO" >> $GITHUB_ENV
                 echo "REMOTE_SESSION_BASE=$REMOTE_SESSION_BASE" >> $GITHUB_ENV
                 echo "REMOTE_SESSION_BASE_DIR=$REMOTE_SESSION_BASE_DIR" >> $GITHUB_ENV
+                REMOTE_SESSION_AUDIO_DIR="${SESSION_DIR}/assets/audios" >> $GITHUB_ENV
+                REMOTE_SESSION_IMAGE_DIR="${SESSION_DIR}/assets/images" >> $GITHUB_ENV
+                REMOTE_SESSION_MERGED_DIR="${SESSION_DIR}/merged" >> $GITHUB_ENV
 
                 echo "🔹 Variables prepared"
 
@@ -66,14 +72,24 @@ jobs:
             - name: Create session folders
               run: |
                 echo "🔹 Creating session folders..."
-                rclone mkdir "${SESSION_DIR}/merged"
-                rclone mkdir "${SESSION_DIR}/assets/audios"
-                rclone mkdir "${SESSION_DIR}/assets/images"
+                rclone mkdir "${REMOTE_SESSION_MERGED_DIR}"
+                rclone mkdir "${REMOTE_SESSION_AUDIO_DIR}"
+                rclone mkdir "${REMOTE_SESSION_IMAGE_DIR}"
 
             - name: Pull requested audio files
               shell: bash
               run: |
-                ./scripts/pull_audios.sh "${PLAYLIST_NAME}" "${REQUESTED_COUNT}" "${SESSION_DIR}"
+                ./scripts/pull_raw_audios.sh "${PLAYLIST_NAME}" "${REQUESTED_COUNT}" "${SESSION_DIR}"
+
+            - name: Download all session audio files
+              run: |
+                mkdir -p ./session_audio
+                echo "Downloading MP3s from ${REMOTE_SESSION_AUDIO_DIR}..."
+                rclone --transfers=5 copy "${REMOTE_SESSION_AUDIO_DIR}" ./session_audio --include "*.mp3" --progress
+
+            
+
+            
               
 
 
