@@ -15,7 +15,7 @@ on:
       requested-count:
         description: 'Total count of songs to create content'
         required: true
-        default: '10'
+        default: '3'
         type: 'string'
 
 jobs:
@@ -65,8 +65,15 @@ jobs:
 
             - name: Create session folders
               run: |
+                echo "🔹 Creating session folders..."
                 rclone mkdir "${SESSION_DIR}/merged"
                 rclone mkdir "${SESSION_DIR}/assets/audios"
                 rclone mkdir "${SESSION_DIR}/assets/images"
+
+            - name: Pull requested audio files
+              shell: bash
+              run: |
+                ./scripts/pull_audios.sh "${PLAYLIST_NAME}" "${REQUESTED_COUNT}" "${SESSION_DIR}/assets/audio"
+              
 
 
