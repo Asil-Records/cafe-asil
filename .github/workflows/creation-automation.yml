@@ -36,7 +36,7 @@ jobs:
                 PLAYLIST_NAME="${{ github.event.inputs.playlist-name }}"
                 SESSION_DATE=$(date +%Y%m%d)
                 BASE_DIR="cafe-asil:Asil-Records/cafe-asil"
-                SESSION_DIR="${BASE_DIR}/sessions/session_${SESSION_DATE}-${PLAYLIST_NAME}
+                SESSION_DIR="${BASE_DIR}/sessions/session_${SESSION_DATE}-${PLAYLIST_NAME}"
 
                 # Check if session folder already exists, and if so, increment suffix
                 COUNTER=1
@@ -46,6 +46,10 @@ jobs:
                     COUNTER=$((COUNTER+1))
                 done
 
+                echo "FINAL_SESSION_DIR=$FINAL_SESSION_DIR" >> $GITHUB_ENV
+
+            - name: Create session folders
+              run: |
                 mkdir -p "$FINAL_SESSION_DIR/assets/audio" "$FINAL_SESSION_DIR/assets/video" "$FINAL_SESSION_DIR/merged"
 
                 echo "FINAL_SESSION_DIR=$FINAL_SESSION_DIR" >> $GITHUB_ENV
