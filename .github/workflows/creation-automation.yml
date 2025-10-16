@@ -46,6 +46,9 @@ jobs:
                 echo "🔍 Checking existing session folders on Drive..."
                 # List current session folders once and cache locally
                 EXISTING_JSON=$(rclone lsjson "$REMOTE_SESSION_BASE" || echo "[]")
+                echo "---- BEGIN EXISTING_JSON ----"
+                echo "$EXISTING_JSON"
+                echo "---- END EXISTING_JSON ----"
 
                 # Quick helper function
                 exists_in_remote() {
@@ -66,5 +69,5 @@ jobs:
                 rclone mkdir "$SESSION_DIR/assets/video"
                 rclone mkdir "$SESSION_DIR/merged"
                 echo "Session directory created: $SESSION_DIR"
-                echo "✅ Created remote session: $SESSION_DIR"
+                echo "✅ Created remote session: $SESSION_DIR" 
 
