@@ -36,23 +36,25 @@ jobs:
               run: |
                 PLAYLIST_NAME="${{ github.event.inputs.playlist-name }}"
                 SESSION_DATE=$(date +%Y%m%d)
-                BASE_DIR="cafe-asil:Asil-Records/cafe-asil"
-                SESSION_DIR="${BASE_DIR}/sessions/session_${SESSION_DATE}-${PLAYLIST_NAME}"
+                REMOTE_BASE="cafe-asil:Asil-Records/cafe-asil"
+                REMOTE_SESSION_BASE="${REMOTE_BASE}/sessions/session_${SESSION_DATE}_${PLAYLIST_NAME}"
+
+                FINAL_REMOTE="$REMOTE_SESSION_BASE"
+                COUNTER=1
 
                 # Check if session folder already exists, and if so, increment suffix
-                COUNTER=1
-                FINAL_SESSION_DIR=$SESSION_DIR
-                while [ -d "$FINAL_SESSION_DIR" ]; do
-                    FINAL_SESSION_DIR="${SESSION_DIR}_${COUNTER}"
+                while rclone lsf "$FINAL_REMOTE" >/dev/null 2>&1; do
+                    FINAL_REMOTE="${REMOTE_SESSION_BASE}_${COUNTER}"
                     COUNTER=$((COUNTER+1))
                 done
 
-                echo "FINAL_SESSION_DIR=$FINAL_SESSION_DIR" >> $GITHUB_ENV
+                echo "SESSION_DIR=$FINAL_REMOTE" >> $GITHUB_ENV
 
             - name: Create session folders
               run: |
-                rclone mkdir "$FINAL_SESSION_DIR/assets/audio"
-                rclone mkdir "$FINAL_SESSION_DIR/assets/video"
-                rclone mkdir "$FINAL_SESSION_DIR/merged"
-                echo "Session directory created: $FINAL_SESSION_DIR"
+                rclone mkdir "$SESSION_DIR/assets/audio"
+                rclone mkdir "$SESSION_DIR/assets/video"
+                rclone mkdir "$SESSION_DIR/merged"
+                echo "Session directory created: $SESSION_DIR"
+                echo "- Successfully created session folders: $SESSION_DIR"
 
