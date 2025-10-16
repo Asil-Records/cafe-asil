@@ -42,8 +42,17 @@ jobs:
                 FINAL_REMOTE="$REMOTE_SESSION_BASE"
                 COUNTER=1
 
+                echo "🔍 Checking existing session folders on Drive..."
+                # List current session folders once and cache locally
+                EXISTING_JSON=$(rclone lsjson "$REMOTE_BASE" || echo "[]")
+
+                # Quick helper function
+                exists_in_remote() {
+                    echo "$EXISTING_JSON" | jq -e --arg name "$(basename "$1")" '.[] | select(.Name == $name)' >/dev/null 2>&1
+                }
+
                 # Check if session folder already exists, and if so, increment suffix
-                while rclone lsf "$FINAL_REMOTE" >/dev/null 2>&1; do
+                while exists_in_remote "$FINAL_REMOTE"; do
                     FINAL_REMOTE="${REMOTE_SESSION_BASE}_${COUNTER}"
                     COUNTER=$((COUNTER+1))
                 done
@@ -56,5 +65,5 @@ jobs:
                 rclone mkdir "$SESSION_DIR/assets/video"
                 rclone mkdir "$SESSION_DIR/merged"
                 echo "Session directory created: $SESSION_DIR"
-                echo "- Successfully created session folders: $SESSION_DIR"
+                echo "✅ Created remote session: $FINAL_REMOTE"
 
