@@ -52,7 +52,8 @@ jobs:
 
                 # Quick helper function
                 exists_in_remote() {
-                    echo "$EXISTING_JSON" | jq -e --arg name "$(basename "$1")" '.[] | select(.Name == $name)' >/dev/null 2>&1
+                    REL_NAME="${1##*/}"  # strip everything before the last '/'
+                    echo "$EXISTING_JSON" | jq -e --arg name "$REL_NAME" '.[] | select(.Name == $name)' >/dev/null 2>&1
                 }
 
                 # Check if session folder already exists, and if so, increment suffix
