@@ -6,6 +6,7 @@ on:
       playlist-name:
         description: 'Choose playlist type'
         required: true
+        default: 'lofi-moments'
         type: choice
         options:
           - lofi-moments
