@@ -47,17 +47,24 @@ jobs:
                 # List current session folders once and cache locally
                 EXISTING_JSON=$(rclone lsjson "$REMOTE_SESSION_BASE" || echo "[]")
 
-                # Quick helper function
+                # Create bash array of existing folder names (lowercase)
+                REMOTE_NAMES=($(echo "$EXISTING_JSON" | jq -r '.[].Name | ascii_downcase'))
+
+                # Helper function
                 exists_in_remote() {
                     REL_NAME="${1##*:}"          # remove remote prefix
                     REL_NAME="${REL_NAME##*/}"   # remove path prefix
                     REL_NAME=$(echo "$REL_NAME" | tr '[:upper:]' '[:lower:]')
-                    echo ${REL_NAME}
-                    echo "$EXISTING_JSON" | jq -e --arg name "$REL_NAME" \
-                        '.[] | select((.Name | ascii_downcase) == $name)' >/dev/null 2>&1
+
+                    for name in "${REMOTE_NAMES[@]}"; do
+                        if [[ "$name" == "$REL_NAME" ]]; then
+                            return 0
+                        fi
+                    done
+                    return 1
                 }
 
-                # Check if session folder already exists, and if so, increment suffix
+                # Increment folder name if it already exists
                 while exists_in_remote "$FINAL_REMOTE_DIR"; do
                     FINAL_REMOTE_DIR="${REMOTE_SESSION_BASE_DIR}_${COUNTER}"
                     COUNTER=$((COUNTER+1))
