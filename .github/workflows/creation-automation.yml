@@ -46,14 +46,15 @@ jobs:
                 echo "🔍 Checking existing session folders on Drive..."
                 # List current session folders once and cache locally
                 EXISTING_JSON=$(rclone lsjson "$REMOTE_SESSION_BASE" || echo "[]")
-                echo "---- BEGIN EXISTING_JSON ----"
-                echo "$EXISTING_JSON"
-                echo "---- END EXISTING_JSON ----"
 
                 # Quick helper function
                 exists_in_remote() {
-                    REL_NAME="${1##*/}"  # strip everything before the last '/'
-                    echo "$EXISTING_JSON" | jq -e --arg name "$REL_NAME" '.[] | select(.Name == $name)' >/dev/null 2>&1
+                    REL_NAME="${1##*:}"          # remove remote prefix
+                    REL_NAME="${REL_NAME##*/}"   # remove path prefix
+                    REL_NAME=$(echo "$REL_NAME" | tr '[:upper:]' '[:lower:]')
+                    echo ${REL_NAME}
+                    echo "$EXISTING_JSON" | jq -e --arg name "$REL_NAME" \
+                        '.[] | select((.Name | ascii_downcase) == $name)' >/dev/null 2>&1
                 }
 
                 # Check if session folder already exists, and if so, increment suffix
