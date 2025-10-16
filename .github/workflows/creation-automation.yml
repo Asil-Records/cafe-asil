@@ -50,8 +50,8 @@ jobs:
 
             - name: Create session folders
               run: |
-                mkdir -p "$FINAL_SESSION_DIR/assets/audio" "$FINAL_SESSION_DIR/assets/video" "$FINAL_SESSION_DIR/merged"
-
-                echo "FINAL_SESSION_DIR=$FINAL_SESSION_DIR" >> $GITHUB_ENV
+                rclone mkdir "$FINAL_SESSION_DIR/assets/audio"
+                rclone mkdir "$FINAL_SESSION_DIR/assets/video"
+                rclone mkdir "$FINAL_SESSION_DIR/merged"
                 echo "Session directory created: $FINAL_SESSION_DIR"
 
