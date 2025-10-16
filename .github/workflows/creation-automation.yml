@@ -12,6 +12,11 @@ on:
           - lofi-moments
           - sleepy-cafe
           - morning-brew
+      requested-count:
+        description: 'Total count of songs to create content'
+        required: true
+        default: '0'
+        type: 'string'
 
 jobs:
     content_creation:
@@ -33,51 +38,28 @@ jobs:
 
             - name: Prepare variables
               id: vars
-              shell: bash
               run: |
                 PLAYLIST_NAME="${{ github.event.inputs.playlist-name }}"
+                REQUESTED_COUNT="${{ github.event.inputs.requested-count }}"
                 SESSION_DATE=$(date +%Y%m%d)
                 REMOTE_BASE="cafe-asil:Asil-Records/cafe-asil"
+                REMOTE_RAW_AUDIO="${REMOTE_BASE}/raw_audios/${PLAYLIST_NAME}"
                 REMOTE_SESSION_BASE="${REMOTE_BASE}/sessions"
                 REMOTE_SESSION_BASE_DIR="${REMOTE_SESSION_BASE}/session_${SESSION_DATE}_${PLAYLIST_NAME}"
 
-                FINAL_REMOTE_DIR="$REMOTE_SESSION_BASE_DIR"
-                COUNTER=1
+                echo "PLAYLIST_NAME=$PLAYLIST_NAME" >> $GITHUB_ENV
+                echo "REQUESTED_COUNT=$REQUESTED_COUNT" >> $GITHUB_ENV
+                echo "REMOTE_RAW_AUDIO=$REMOTE_RAW_AUDIO" >> $GITHUB_ENV
+                echo "REMOTE_SESSION_BASE=$REMOTE_SESSION_BASE" >> $GITHUB_ENV
+                echo "REMOTE_SESSION_BASE_DIR=$REMOTE_SESSION_BASE_DIR" >> $GITHUB_ENV
 
-                echo "🔍 Checking existing session folders on Drive..."
-                # List current session folders once and cache locally
-                EXISTING_JSON=$(rclone lsjson "$REMOTE_SESSION_BASE" || echo "[]")
+                echo "🔹 Variables prepared"
 
-                # Create bash array of existing folder names (lowercase)
-                REMOTE_NAMES=($(echo "$EXISTING_JSON" | jq -r '.[].Name | ascii_downcase'))
+            - name: Update script permissions
+              run: chmod +x ./scripts/*.sh
 
-                # Helper function
-                exists_in_remote() {
-                    REL_NAME="${1##*:}"          # remove remote prefix
-                    REL_NAME="${REL_NAME##*/}"   # remove path prefix
-                    REL_NAME=$(echo "$REL_NAME" | tr '[:upper:]' '[:lower:]')
-
-                    for name in "${REMOTE_NAMES[@]}"; do
-                        if [[ "$name" == "$REL_NAME" ]]; then
-                            return 0
-                        fi
-                    done
-                    return 1
-                }
-
-                # Increment folder name if it already exists
-                while exists_in_remote "$FINAL_REMOTE_DIR"; do
-                    FINAL_REMOTE_DIR="${REMOTE_SESSION_BASE_DIR}_${COUNTER}"
-                    COUNTER=$((COUNTER+1))
-                done
-
-                echo "SESSION_DIR=$FINAL_REMOTE_DIR" >> $GITHUB_ENV
-
-            - name: Create session folders
+            - name: Update session path
+              shell: bash
               run: |
-                rclone mkdir "$SESSION_DIR/assets/audio"
-                rclone mkdir "$SESSION_DIR/assets/video"
-                rclone mkdir "$SESSION_DIR/merged"
-                echo "Session directory created: $SESSION_DIR"
-                echo "✅ Created remote session: $SESSION_DIR" 
+                  ./scripts/update_session_path.sh "${REMOTE_SESSION_BASE_DIR }" "${REMOTE_SESSION_BASE}"
 
