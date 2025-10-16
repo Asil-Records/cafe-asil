@@ -37,14 +37,15 @@ jobs:
                 PLAYLIST_NAME="${{ github.event.inputs.playlist-name }}"
                 SESSION_DATE=$(date +%Y%m%d)
                 REMOTE_BASE="cafe-asil:Asil-Records/cafe-asil"
-                REMOTE_SESSION_BASE="${REMOTE_BASE}/sessions/session_${SESSION_DATE}_${PLAYLIST_NAME}"
+                REMOTE_SESSION_BASE="${REMOTE_BASE}/sessions"
+                REMOTE_SESSION_BASE_DIR="${REMOTE_SESSION_BASE}/session_${SESSION_DATE}_${PLAYLIST_NAME}"
 
-                FINAL_REMOTE="$REMOTE_SESSION_BASE"
+                FINAL_REMOTE_DIR="$REMOTE_SESSION_BASE_DIR"
                 COUNTER=1
 
                 echo "🔍 Checking existing session folders on Drive..."
                 # List current session folders once and cache locally
-                EXISTING_JSON=$(rclone lsjson "$REMOTE_BASE" || echo "[]")
+                EXISTING_JSON=$(rclone lsjson "$REMOTE_SESSION_BASE" || echo "[]")
 
                 # Quick helper function
                 exists_in_remote() {
@@ -52,12 +53,12 @@ jobs:
                 }
 
                 # Check if session folder already exists, and if so, increment suffix
-                while exists_in_remote "$FINAL_REMOTE"; do
-                    FINAL_REMOTE="${REMOTE_SESSION_BASE}_${COUNTER}"
+                while exists_in_remote "$FINAL_REMOTE_DIR"; do
+                    FINAL_REMOTE_DIR="${REMOTE_SESSION_BASE}_${COUNTER}"
                     COUNTER=$((COUNTER+1))
                 done
 
-                echo "SESSION_DIR=$FINAL_REMOTE" >> $GITHUB_ENV
+                echo "SESSION_DIR=$FINAL_REMOTE_DIR" >> $GITHUB_ENV
 
             - name: Create session folders
               run: |
@@ -65,5 +66,5 @@ jobs:
                 rclone mkdir "$SESSION_DIR/assets/video"
                 rclone mkdir "$SESSION_DIR/merged"
                 echo "Session directory created: $SESSION_DIR"
-                echo "✅ Created remote session: $FINAL_REMOTE"
+                echo "✅ Created remote session: $SESSION_DIR"
 
