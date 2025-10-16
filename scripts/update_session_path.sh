@@ -34,4 +34,4 @@ while exists_in_remote "$FINAL_REMOTE_DIR"; do
 done
 
 echo "SESSION_DIR=$FINAL_REMOTE_DIR" >> $GITHUB_ENV
-echo "✅ Final session folder: $FINAL_REMOTE_DIR"
+echo "✅ Session folder: $FINAL_REMOTE_DIR"
