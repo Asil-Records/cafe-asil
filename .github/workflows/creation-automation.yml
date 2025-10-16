@@ -55,9 +55,9 @@ jobs:
                 echo "REMOTE_RAW_AUDIO=$REMOTE_RAW_AUDIO" >> $GITHUB_ENV
                 echo "REMOTE_SESSION_BASE=$REMOTE_SESSION_BASE" >> $GITHUB_ENV
                 echo "REMOTE_SESSION_BASE_DIR=$REMOTE_SESSION_BASE_DIR" >> $GITHUB_ENV
-                REMOTE_SESSION_AUDIO_DIR="${SESSION_DIR}/assets/audios" >> $GITHUB_ENV
-                REMOTE_SESSION_IMAGE_DIR="${SESSION_DIR}/assets/images" >> $GITHUB_ENV
-                REMOTE_SESSION_MERGED_DIR="${SESSION_DIR}/merged" >> $GITHUB_ENV
+                echo "REMOTE_SESSION_AUDIO_DIR=$REMOTE_SESSION_AUDIO_DIR" >> $GITHUB_ENV
+                echo "REMOTE_SESSION_IMAGE_DIR=$REMOTE_SESSION_IMAGE_DIR" >> $GITHUB_ENV
+                echo "REMOTE_SESSION_MERGED_DIR=$REMOTE_SESSION_MERGED_DIR" >> $GITHUB_ENV
 
                 echo "🔹 Variables prepared"
 
