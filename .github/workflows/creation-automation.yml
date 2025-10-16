@@ -54,7 +54,7 @@ jobs:
 
                 # Check if session folder already exists, and if so, increment suffix
                 while exists_in_remote "$FINAL_REMOTE_DIR"; do
-                    FINAL_REMOTE_DIR="${REMOTE_SESSION_BASE}_${COUNTER}"
+                    FINAL_REMOTE_DIR="${REMOTE_SESSION_BASE_DIR}_${COUNTER}"
                     COUNTER=$((COUNTER+1))
                 done
 
