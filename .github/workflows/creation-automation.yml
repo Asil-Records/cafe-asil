@@ -73,7 +73,7 @@ jobs:
             - name: Pull requested audio files
               shell: bash
               run: |
-                ./scripts/pull_audios.sh "${PLAYLIST_NAME}" "${REQUESTED_COUNT}" "${SESSION_DIR}/assets/audio"
+                ./scripts/pull_audios.sh "${PLAYLIST_NAME}" "${REQUESTED_COUNT}" "${SESSION_DIR}"
               
 
 
