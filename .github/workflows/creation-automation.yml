@@ -72,7 +72,7 @@ jobs:
             - name: Create session folders
               run: |
                 echo "🔹 Creating session folders..."
-                rclone mkdir "${SESSION_DIR}/${REMOTE_SESSSION_MERGED_DIR}"
+                rclone mkdir "${SESSION_DIR}/merged"
                 rclone mkdir "${SESSION_DIR}/${REMOTE_SESSION_AUDIO_DIR}"
                 rclone mkdir "${SESSION_DIR}/${REMOTE_SESSION_IMAGE_DIR}"
 
@@ -86,6 +86,11 @@ jobs:
                 mkdir -p ./session_audio
                 echo "Downloading MP3s from ${SESSION_DIR}/${REMOTE_SESSION_AUDIO_DIR}..."
                 rclone --transfers=5 copy "${SESSION_DIR}/${REMOTE_SESSION_AUDIO_DIR}" ./session_audio --include "*.mp3" --progress
+
+            - name: Merge audio files
+              shell: bash
+              run: |
+                ./scripts/merge_audios.sh "${SESSION_DIR}"
 
             
 

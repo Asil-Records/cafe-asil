@@ -17,4 +17,6 @@ echo "Merging MP3s into one file..."
 ffmpeg -f concat -safe 0 -i mp3_file_list.txt -c copy merged_output.mp3 -y || { echo "FFmpeg merge failed"; exit 1; }
 echo "Merge completed successfully!"
 echo "- Audio merge completed successfully!" >> $GITHUB_STEP_SUMMARY 
-ls -lh merged_output.mp3
+echo "Uploading merged_output.mp3 to drive..."
+rclone --transfers=5 copy "${SESSION_DIR}/merged" ./session_audio --include "*.mp3" --progress
+echo "Successfully uploaded merged_output.mp3 to drive."
