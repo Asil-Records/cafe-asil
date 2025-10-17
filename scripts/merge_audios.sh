@@ -18,5 +18,5 @@ ffmpeg -f concat -safe 0 -i mp3_file_list.txt -c copy merged_output.mp3 -y || { 
 echo "Merge completed successfully!"
 echo "- Audio merge completed successfully!" >> $GITHUB_STEP_SUMMARY 
 echo "Uploading merged_output.mp3 to drive..."
-rclone --transfers=5 copy "${SESSION_DIR}/merged" ./session_audio --include "*.mp3" --progress
+rclone copy merged_output.mp3 "${SESSION_DIR}/merged" --drive-chunk-size=256M --transfers=1 --checkers=4
 echo "Successfully uploaded merged_output.mp3 to drive."
