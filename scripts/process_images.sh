@@ -49,16 +49,16 @@ done
 ## Merge the MP4 files using FFmpeg
 echo "Merging MP4s into one file..."
 # Create file list for ffmpeg
-find ./assets -maxdepth 1 -type f -name "*.mp4" | sort | while read f; do
-echo "file '$f'" >> mp4_file_list.txt
+find "./session_image" -maxdepth 1 -type f -name "*.mp4" | sort | while read f; do
+  echo "file '$f'" >> mp4_file_list.txt
 done
 
 echo "File list for ffmpeg:"
 cat mp4_file_list.txt
 
 if [ ! -s mp4_file_list.txt ]; then
-echo "No mp4 files found — aborting merge."
-exit 1
+  echo "No mp4 files found — aborting merge."
+  exit 1
 fi
 
 echo "- Found $(wc -l < mp4_file_list.txt) tracks for merging." >> $GITHUB_STEP_SUMMARY
