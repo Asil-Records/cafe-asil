@@ -5,7 +5,7 @@ SESSION_DIR="$1"
 DEST="${SESSION_DIR}/merged"
 
 # Ensure the remote destination directory exists
-rclone mkdir -p "$DEST"
+rclone mkdir "$DEST"
 echo "✅ Ensured remote directory $DEST exists."
 
 echo "🎵 Creating FFmpeg file list..."

@@ -8,7 +8,7 @@ DEST="${SESSION_DIR}/assets/images"
 REMOTE_RAW_IMAGE="cafe-asil:Asil-Records/cafe-asil/raw_images/${PLAYLIST}"
 
 # Ensure the remote destination directory exists
-rclone mkdir -p "$DEST"
+rclone mkdir "$DEST"
 echo "✅ Ensured remote directory $DEST exists."
 
 # Get the first file from the shuffled list

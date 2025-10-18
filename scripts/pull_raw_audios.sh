@@ -8,7 +8,7 @@ DEST="${SESSION_DIR}/assets/audios"
 REMOTE_RAW_AUDIO="cafe-asil:Asil-Records/cafe-asil/raw_audios/${PLAYLIST}"
 
 # Ensure the remote destination directory exists
-rclone mkdir -p "$DEST"
+rclone mkdir "$DEST"
 echo "✅ Ensured remote directory $DEST exists."
 
 # Debugging: Print the remote raw audio path
