@@ -20,7 +20,7 @@ BASE_PATTERN=$(echo "$FIRST_FILE" | sed -E 's/^(([^_]+_){2})[^_]+(\.[a-zA-Z0-9]+
 echo "BASE_PATTERN=$BASE_PATTERN"
 
 # List all files matching the pattern
-FILES=$(rclone lsf "$REMOTE_RAW_IMAGE" --files-only | grep "^$BASE_PATTERN$")
+FILES=$(rclone lsf "$REMOTE_RAW_IMAGE" --files-only | grep -E "^${BASE_PATTERN//\*/.*}$")
 
 # Debugging: Print the files being selected
 echo "FILES=$FILES"
