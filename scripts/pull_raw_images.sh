@@ -7,14 +7,18 @@ SESSION_DIR="$3"
 DEST="${SESSION_DIR}/assets/images"
 REMOTE_RAW_IMAGE="cafe-asil:Asil-Records/cafe-asil/raw_images/${PLAYLIST}"
 
+# Ensure the remote destination directory exists
+rclone mkdir -p "$DEST"
+echo "✅ Ensured remote directory $DEST exists."
+
 # Get the first file from the shuffled list
-FIRST_FILE=$(rclone lsf "$REMOTE_RAW_AUDIO" --files-only | sort | head -n 1)
+FIRST_FILE=$(rclone lsf "$REMOTE_RAW_AUDIO" --files-only --fast-list | sort | head -n 1)
 
 # Extract the base pattern (everything before the last underscore and extension)
 BASE_PATTERN=$(echo "$FIRST_FILE" | sed -E 's/_[^_]+(\.[a-zA-Z0-9]+)$/*\1/')
 
 # List all files matching the pattern
-FILES=$(rclone lsf "$REMOTE_RAW_AUDIO" --files-only | grep "^$BASE_PATTERN$")
+FILES=$(rclone lsf "$REMOTE_RAW_AUDIO" --files-only --fast-list | grep "^$BASE_PATTERN$")
 
 # Debugging: Print the files being selected
 echo "FILES=$FILES"

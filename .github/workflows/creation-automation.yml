@@ -76,13 +76,6 @@ jobs:
               run: |
                   ./scripts/update_session_path.sh "${REMOTE_SESSION_BASE_DIR}" "${REMOTE_SESSION_BASE}"
 
-            - name: Create session folders
-              run: |
-                echo "🔹 Creating session folders..."
-                rclone mkdir "${SESSION_DIR}/merged" \ 
-                              "${SESSION_DIR}/${REMOTE_SESSION_AUDIO_DIR}" \ 
-                              "${SESSION_DIR}/${REMOTE_SESSION_IMAGE_DIR}"
-
             - name: Pull requested audio files
               shell: bash
               run: |

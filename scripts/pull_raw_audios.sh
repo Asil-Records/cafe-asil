@@ -8,14 +8,15 @@ DEST="${SESSION_DIR}/assets/audios"
 REMOTE_RAW_AUDIO="cafe-asil:Asil-Records/cafe-asil/raw_audios/${PLAYLIST}"
 
 # Ensure the remote destination directory exists
-rclone mkdir "$DEST"
+rclone mkdir -p "$DEST"
+echo "✅ Ensured remote directory $DEST exists."
 
 # Debugging: Print the remote raw audio path
 echo "REMOTE_RAW_AUDIO=$REMOTE_RAW_AUDIO"
 echo "DEST=$DEST"
 
 # List files, shuffle, and select the requested count
-FILES=$(rclone lsf "$REMOTE_RAW_AUDIO" --files-only | shuf | head -n "$COUNT")
+FILES=$(rclone lsf "$REMOTE_RAW_AUDIO" --files-only --fast-list | shuf | head -n "$COUNT")
 
 # Debugging: Print the files being selected
 echo "FILES=$FILES"

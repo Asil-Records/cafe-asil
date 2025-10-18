@@ -1,6 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
+SESSION_DIR="$1"
+DEST="${SESSION_DIR}/merged"
+
+# Ensure the remote destination directory exists
+rclone mkdir -p "$DEST"
+echo "✅ Ensured remote directory $DEST exists."
+
 echo "🎵 Creating FFmpeg file list..."
 find ./session_audio -type f -name "*.mp3" | sort | while read f; do
     echo "file '$f'" >> mp3_file_list.txt
