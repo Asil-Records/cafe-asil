@@ -2,8 +2,7 @@
 set -euo pipefail
 
 PLAYLIST="$1"
-COUNT="$2"
-SESSION_DIR="$3"
+SESSION_DIR="$2"
 DEST="${SESSION_DIR}/assets/images"
 REMOTE_RAW_IMAGE="cafe-asil:Asil-Records/cafe-asil/raw_videos/${PLAYLIST}"
 
@@ -71,3 +70,13 @@ echo "- Video merge completed successfully!" >> $GITHUB_STEP_SUMMARY
 echo "Uploading merged_video.mp4 to drive..."
 rclone copy merged_video.mp4 "${SESSION_DIR}/merged" --drive-chunk-size=256M --transfers=1 --checkers=4
 echo "Successfully uploaded merged_video.mp4 to drive."
+
+# Delete the copied files to the destination
+echo "$FILES" | while IFS= read -r f; do
+  # Trim whitespace and ensure the file name is clean
+  f=$(echo "$f" | xargs)
+  echo "Deleting: $f from $REMOTE_RAW_IMAGE"
+  rclone delete "$REMOTE_RAW_IMAGE/$f"
+done
+
+echo "✅ Processed image files and cleared them from $REMOTE_RAW_IMAGE"

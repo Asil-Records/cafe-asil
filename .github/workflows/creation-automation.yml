@@ -41,7 +41,6 @@ jobs:
               run: |
                 PLAYLIST_NAME="${{ github.event.inputs.playlist-name }}"
                 REQUESTED_AUDIO_COUNT="${{ github.event.inputs.requested-audio-count }}"
-                REQUESTED_IMAGE_COUNT="${{ github.event.inputs.requested-image-count }}"
                 SESSION_DATE=$(date +%Y%m%d)
                 REMOTE_BASE="cafe-asil:Asil-Records/cafe-asil"
                 REMOTE_RAW_AUDIO="${REMOTE_BASE}/raw_audios/${PLAYLIST_NAME}"
@@ -54,7 +53,6 @@ jobs:
                 echo "PLAYLIST_NAME=$PLAYLIST_NAME" >> $GITHUB_ENV
                 echo "SESSION_DATE=$SESSION_DATE" >> $GITHUB_ENV
                 echo "REQUESTED_AUDIO_COUNT=$REQUESTED_AUDIO_COUNT" >> $GITHUB_ENV
-                echo "REQUESTED_IMAGE_COUNT=$REQUESTED_IMAGE_COUNT" >> $GITHUB_ENV
                 echo "REMOTE_RAW_AUDIO=$REMOTE_RAW_AUDIO" >> $GITHUB_ENV
                 echo "REMOTE_SESSION_BASE=$REMOTE_SESSION_BASE" >> $GITHUB_ENV
                 echo "REMOTE_SESSION_BASE_DIR=$REMOTE_SESSION_BASE_DIR" >> $GITHUB_ENV
@@ -75,7 +73,7 @@ jobs:
             - name: Processing audio files
               shell: bash
               run: |
-                ./scripts/process_audios.sh "${PLAYLIST_NAME}" "${REQUESTED_AUDIO_COUNT}" "${SESSION_DIR}"
+                ./scripts/process_audios.sh "${PLAYLIST_NAME}" "${SESSION_DIR}"
 
             - name: Process image files
               shell: bash
