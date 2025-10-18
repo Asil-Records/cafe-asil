@@ -78,7 +78,7 @@ jobs:
             - name: Process image files
               shell: bash
               run: |
-                ./scripts/process_images.sh "${PLAYLIST_NAME}" "${REQUESTED_IMAGE_COUNT}" "${SESSION_DIR}"
+                ./scripts/process_images.sh "${PLAYLIST_NAME}" "${SESSION_DIR}"
 
             - name: Prepare merged content
               shell: bash
