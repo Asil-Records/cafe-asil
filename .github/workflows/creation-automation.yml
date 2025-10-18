@@ -89,7 +89,7 @@ jobs:
             - name: Pull requested images
               shell: bash
               run: |
-                ./scripts/pull_raw_images.sh "${PLAYLIST_NAME}" "REQUESTED_IMAGE_COUNT" "${SESSION_DIR}"
+                ./scripts/pull_raw_images.sh "${PLAYLIST_NAME}" "${REQUESTED_IMAGE_COUNT}" "${SESSION_DIR}"
 
             
 
