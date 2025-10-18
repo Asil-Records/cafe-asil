@@ -45,3 +45,29 @@ echo "$FILES" | while IFS= read -r f; do
   echo "Moving: $f to $DEST"
   rclone copy --transfers=5 "./session_image/$f" "$DEST/"
 done
+
+## Merge the MP4 files using FFmpeg
+echo "Merging MP4s into one file..."
+# Create file list for ffmpeg
+find ./assets -maxdepth 1 -type f -name "*.mp4" | sort | while read f; do
+echo "file '$f'" >> mp4_file_list.txt
+done
+
+echo "File list for ffmpeg:"
+cat mp4_file_list.txt
+
+if [ ! -s mp4_file_list.txt ]; then
+echo "No mp4 files found — aborting merge."
+exit 1
+fi
+
+echo "- Found $(wc -l < mp4_file_list.txt) tracks for merging." >> $GITHUB_STEP_SUMMARY
+
+echo "Merging MP4s into one file..."
+ffmpeg -f concat -safe 0 -i mp4_file_list.txt -c copy merged_video.mp4 -y || { echo "FFmpeg merge failed"; exit 1; }
+echo "Merge completed successfully!"
+echo "- Video merge completed successfully!" >> $GITHUB_STEP_SUMMARY
+
+echo "Uploading merged_video.mp4 to drive..."
+rclone copy merged_video.mp4 "${SESSION_DIR}/merged" --drive-chunk-size=256M --transfers=1 --checkers=4
+echo "Successfully uploaded merged_video.mp4 to drive."

@@ -76,20 +76,29 @@ jobs:
               run: |
                   ./scripts/update_session_path.sh "${REMOTE_SESSION_BASE_DIR}" "${REMOTE_SESSION_BASE}"
 
-            - name: Pull requested audio files
+            - name: Processing audio files
               shell: bash
               run: |
-                ./scripts/pull_raw_audios.sh "${PLAYLIST_NAME}" "${REQUESTED_AUDIO_COUNT}" "${SESSION_DIR}"
+                ./scripts/process_audios.sh "${PLAYLIST_NAME}" "${REQUESTED_AUDIO_COUNT}" "${SESSION_DIR}"
 
-            - name: Merge audio files
+            - name: Process image files
               shell: bash
               run: |
-                ./scripts/merge_audios.sh "${SESSION_DIR}"
+                ./scripts/process_images.sh "${PLAYLIST_NAME}" "${REQUESTED_IMAGE_COUNT}" "${SESSION_DIR}"
 
-            - name: Pull requested images
+            - name: Prepare merged content
               shell: bash
               run: |
-                ./scripts/pull_raw_images.sh "${PLAYLIST_NAME}" "${REQUESTED_IMAGE_COUNT}" "${SESSION_DIR}"
+                ./scripts/prepare_merged_content.sh "${SESSION_DIR}"
+
+            - name: Add completion summary
+              run: |
+                echo "### ☕ Café Asil **${SESSION_NAME}**" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "- Playlist: **${{ github.event.inputs.playlist-name }}**" >> $GITHUB_STEP_SUMMARY
+                echo "- Session Path: **${SESSION_DIR}**" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "Workflow completed successfully 🎵" >> $GITHUB_STEP_SUMMARY
 
             
 
