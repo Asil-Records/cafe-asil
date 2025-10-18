@@ -17,11 +17,6 @@ on:
         required: true
         default: '3'
         type: 'string'
-      requested-image-count:
-        description: 'Total count of images to pull'
-        required: true
-        default: '3'
-        type: 'string'
 
 jobs:
     content_creation:
@@ -57,6 +52,7 @@ jobs:
                 REMOTE_SESSION_MERGED_DIR="merged"
 
                 echo "PLAYLIST_NAME=$PLAYLIST_NAME" >> $GITHUB_ENV
+                echo "SESSION_DATE=$SESSION_DATE" >> $GITHUB_ENV
                 echo "REQUESTED_AUDIO_COUNT=$REQUESTED_AUDIO_COUNT" >> $GITHUB_ENV
                 echo "REQUESTED_IMAGE_COUNT=$REQUESTED_IMAGE_COUNT" >> $GITHUB_ENV
                 echo "REMOTE_RAW_AUDIO=$REMOTE_RAW_AUDIO" >> $GITHUB_ENV

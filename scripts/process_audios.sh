@@ -68,12 +68,12 @@ echo "Uploading merged_output.mp3 to drive..."
 rclone copy merged_output.mp3 "${SESSION_DIR}/merged" --drive-chunk-size=256M --transfers=1 --checkers=4
 echo "Successfully uploaded merged_output.mp3 to drive."
 
-# # Delete the copied files to the destination
-# echo "$FILES" | while IFS= read -r f; do
-#   # Trim whitespace and ensure the file name is clean
-#   f=$(echo "$f" | xargs)
-#   echo "Deleting: $f from $REMOTE_RAW_AUDIO"
-#   rclone delete "$REMOTE_RAW_AUDIO/$f"
-# done
+# Delete the copied files to the destination
+echo "$FILES" | while IFS= read -r f; do
+  # Trim whitespace and ensure the file name is clean
+  f=$(echo "$f" | xargs)
+  echo "Deleting: $f from $REMOTE_RAW_AUDIO"
+  rclone delete "$REMOTE_RAW_AUDIO/$f"
+done
 
 echo "✅ Processed $COUNT audio files and cleared them from $REMOTE_RAW_AUDIO"
