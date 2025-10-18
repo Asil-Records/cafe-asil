@@ -12,8 +12,13 @@ on:
           - lofi-moments
           - sleepy-cafe
           - morning-brew
-      requested-count:
+      requested-audio-count:
         description: 'Total count of songs to create content'
+        required: true
+        default: '3'
+        type: 'string'
+      requested-image-count:
+        description: 'Total count of images to pull'
         required: true
         default: '3'
         type: 'string'
@@ -40,7 +45,8 @@ jobs:
               id: vars
               run: |
                 PLAYLIST_NAME="${{ github.event.inputs.playlist-name }}"
-                REQUESTED_COUNT="${{ github.event.inputs.requested-count }}"
+                REQUESTED_AUDIO_COUNT="${{ github.event.inputs.requested-audio-count }}"
+                REQUESTED_IMAGE_COUNT="${{ github.event.inputs.requested-image-count }}"
                 SESSION_DATE=$(date +%Y%m%d)
                 REMOTE_BASE="cafe-asil:Asil-Records/cafe-asil"
                 REMOTE_RAW_AUDIO="${REMOTE_BASE}/raw_audios/${PLAYLIST_NAME}"
@@ -51,7 +57,8 @@ jobs:
                 REMOTE_SESSION_MERGED_DIR="merged"
 
                 echo "PLAYLIST_NAME=$PLAYLIST_NAME" >> $GITHUB_ENV
-                echo "REQUESTED_COUNT=$REQUESTED_COUNT" >> $GITHUB_ENV
+                echo "REQUESTED_AUDIO_COUNT=$REQUESTED_AUDIO_COUNT" >> $GITHUB_ENV
+                echo "REQUESTED_IMAGE_COUNT=$REQUESTED_IMAGE_COUNT" >> $GITHUB_ENV
                 echo "REMOTE_RAW_AUDIO=$REMOTE_RAW_AUDIO" >> $GITHUB_ENV
                 echo "REMOTE_SESSION_BASE=$REMOTE_SESSION_BASE" >> $GITHUB_ENV
                 echo "REMOTE_SESSION_BASE_DIR=$REMOTE_SESSION_BASE_DIR" >> $GITHUB_ENV
@@ -72,14 +79,14 @@ jobs:
             - name: Create session folders
               run: |
                 echo "🔹 Creating session folders..."
-                rclone mkdir "${SESSION_DIR}/merged"
-                rclone mkdir "${SESSION_DIR}/${REMOTE_SESSION_AUDIO_DIR}"
-                rclone mkdir "${SESSION_DIR}/${REMOTE_SESSION_IMAGE_DIR}"
+                rclone mkdir "${SESSION_DIR}/merged" \ 
+                              "${SESSION_DIR}/${REMOTE_SESSION_AUDIO_DIR}" \ 
+                              "${SESSION_DIR}/${REMOTE_SESSION_IMAGE_DIR}"
 
             - name: Pull requested audio files
               shell: bash
               run: |
-                ./scripts/pull_raw_audios.sh "${PLAYLIST_NAME}" "${REQUESTED_COUNT}" "${SESSION_DIR}"
+                ./scripts/pull_raw_audios.sh "${PLAYLIST_NAME}" "${REQUESTED_AUDIO_COUNT}" "${SESSION_DIR}"
 
             - name: Download all session audio files
               run: |
@@ -91,6 +98,11 @@ jobs:
               shell: bash
               run: |
                 ./scripts/merge_audios.sh "${SESSION_DIR}"
+
+            - name: Pull requested images
+              shell: bash
+              run: |
+                ./scripts/pull_raw_images.sh "${PLAYLIST_NAME}" "REQUESTED_IMAGE_COUNT" "${SESSION_DIR}"
 
             
 
