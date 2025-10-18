@@ -15,8 +15,8 @@ echo "✅ Ensured remote directory $DEST exists."
 FIRST_FILE=$(rclone lsf "$REMOTE_RAW_IMAGE" --files-only --fast-list | sort | head -n 1)
 echo "FIRST_FILE=$FIRST_FILE"
 
-# Extract the base pattern (everything before the last underscore and extension)
-BASE_PATTERN=$(echo "$FIRST_FILE" | sed -E 's/_[^_]+(\.[a-zA-Z0-9]+)$/*\1/')
+# Extract the base pattern (everything before the second-to-last underscore and append _*)
+BASE_PATTERN=$(echo "$FIRST_FILE" | sed -E 's/(_[^_]+){2}(\.[a-zA-Z0-9]+)$/*/')
 echo "BASE_PATTERN=$BASE_PATTERN"
 
 # List all files matching the pattern
