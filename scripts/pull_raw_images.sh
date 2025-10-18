@@ -12,15 +12,15 @@ rclone mkdir "$DEST"
 echo "✅ Ensured remote directory $DEST exists."
 
 # Get the first file from the sorted list
-FIRST_FILE=$(rclone lsf "$REMOTE_RAW_IMAGE" --files-only | sort -V | head -n 1)
+FIRST_FILE=$(rclone lsf "$REMOTE_RAW_IMAGE" --files-only | LC_ALL=C sort | head -n 1)
 echo "FIRST_FILE=$FIRST_FILE"
 
 # Extract the base pattern (everything up to the second underscore and append _*)
-BASE_PATTERN=$(echo "$FIRST_FILE" | sed -E 's/^(([^_]+_){2})[^_]+(\.[a-zA-Z0-9]+)$/\1*/')
+BASE_PATTERN=$(echo "$FIRST_FILE" | sed -E 's/^(([^_]+_){2})[^_]+(\.[a-zA-Z0-9]+)$/\1/')
 echo "BASE_PATTERN=$BASE_PATTERN"
 
 # List all files matching the pattern
-FILES=$(rclone lsf "$REMOTE_RAW_IMAGE" --files-only | grep -E "^${BASE_PATTERN//\*/.*}$")
+FILES=$(rclone lsf "$REMOTE_RAW_IMAGE" --files-only | grep -E "^${BASE_PATTERN}[0-9]+\.mp4$")
 
 # Debugging: Print the files being selected
 echo "FILES=$FILES"
