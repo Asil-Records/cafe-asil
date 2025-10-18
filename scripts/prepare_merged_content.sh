@@ -1,7 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-SESSION_DIR="$1"
+PLAYLIST_NAME="$1"
+SESSION_DATE="$2"
+SESSION_DIR="$3"
 DEST="${SESSION_DIR}/merged"
 FINAL_MP4_FILE="rendered-${PLAYLIST_NAME}-${SESSION_DATE}.mp4"
 

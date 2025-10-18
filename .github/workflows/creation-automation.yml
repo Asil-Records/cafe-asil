@@ -89,7 +89,7 @@ jobs:
             - name: Prepare merged content
               shell: bash
               run: |
-                ./scripts/prepare_merged_content.sh "${SESSION_DIR}"
+                ./scripts/prepare_merged_content.sh "${PlAYLIST_NAME}" "${SESSION_DATE} "${SESSION_DIR}"
 
             - name: Add completion summary
               run: |
