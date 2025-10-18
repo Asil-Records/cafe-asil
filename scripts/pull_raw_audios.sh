@@ -26,12 +26,20 @@ if [ -z "$FILES" ]; then
   exit 1
 fi
 
-# Loop through files and copy them
+# Copy the selected files locally first
 echo "$FILES" | while IFS= read -r f; do
   # Trim whitespace and ensure the file name is clean
   f=$(echo "$f" | xargs)
-  echo "Copying: $f to $DEST"
-  rclone move --transfers=5 "$REMOTE_RAW_AUDIO/$f" "$DEST/"
+  echo "Copying: $f to local session_audio directory"
+  rclone --transfers=5 copy "$REMOTE_RAW_AUDIO/$f" ./session_audio --include "*.mp3" --progress
+done
+
+# Move the copied files to the destination
+echo "$FILES" | while IFS= read -r f; do
+  # Trim whitespace and ensure the file name is clean
+  f=$(echo "$f" | xargs)
+  echo "Moving: $f to $DEST"
+  rclone copy --transfers=5 "./session_audio/$f" "$DEST/"
 done
 
 echo "✅ Copied $COUNT audio files to $DEST"

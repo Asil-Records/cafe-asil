@@ -81,12 +81,6 @@ jobs:
               run: |
                 ./scripts/pull_raw_audios.sh "${PLAYLIST_NAME}" "${REQUESTED_AUDIO_COUNT}" "${SESSION_DIR}"
 
-            - name: Download all session audio files
-              run: |
-                mkdir -p ./session_audio
-                echo "Downloading MP3s from ${SESSION_DIR}/${REMOTE_SESSION_AUDIO_DIR}..."
-                rclone --transfers=5 copy "${SESSION_DIR}/${REMOTE_SESSION_AUDIO_DIR}" ./session_audio --include "*.mp3" --progress
-
             - name: Merge audio files
               shell: bash
               run: |
