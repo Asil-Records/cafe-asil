@@ -18,7 +18,7 @@ FIRST_FILE=$(rclone lsf "$REMOTE_RAW_AUDIO" --files-only --fast-list | sort | he
 BASE_PATTERN=$(echo "$FIRST_FILE" | sed -E 's/_[^_]+(\.[a-zA-Z0-9]+)$/*\1/')
 
 # List all files matching the pattern
-FILES=$(rclone lsf "$REMOTE_RAW_AUDIO" --files-only --fast-list | grep "^$BASE_PATTERN$")
+FILES=$(rclone lsf "$REMOTE_RAW_IMAGE" --files-only --fast-list | grep "^$BASE_PATTERN$")
 
 # Debugging: Print the files being selected
 echo "FILES=$FILES"
