@@ -73,7 +73,7 @@ jobs:
             - name: Processing audio files
               shell: bash
               run: |
-                ./scripts/process_audios.sh "${PLAYLIST_NAME}" "REQUESTED_AUDIO_COUNT" "${SESSION_DIR}"
+                ./scripts/process_audios.sh "${PLAYLIST_NAME}" "${REQUESTED_AUDIO_COUNT}" "${SESSION_DIR}"
 
             - name: Process image files
               shell: bash
