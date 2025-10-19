@@ -5,7 +5,7 @@ PLAYLIST="$1"
 COUNT="$2"
 SESSION_DIR="$3"
 DEST="${SESSION_DIR}/assets/audios"
-REMOTE_RAW_AUDIO="cafe-asil:Asil-Records/cafe-asil/raw_audios/${PLAYLIST}"
+REMOTE_RAW_AUDIO="cafe-asil:Asil-Records/asils-lofi-world/raw_audios/${PLAYLIST}"
 
 # Ensure the remote destination directory exists
 rclone mkdir "$DEST"

@@ -4,7 +4,7 @@ set -euo pipefail
 PLAYLIST="$1"
 SESSION_DIR="$2"
 DEST="${SESSION_DIR}/assets/images"
-REMOTE_RAW_IMAGE="cafe-asil:Asil-Records/cafe-asil/raw_videos/${PLAYLIST}"
+REMOTE_RAW_IMAGE="cafe-asil:Asil-Records/asils-lofi-world/raw_videos/${PLAYLIST}"
 
 # Ensure the remote destination directory exists
 rclone mkdir "$DEST"

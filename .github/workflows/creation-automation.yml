@@ -42,7 +42,7 @@ jobs:
                 PLAYLIST_NAME="${{ github.event.inputs.playlist-name }}"
                 REQUESTED_AUDIO_COUNT="${{ github.event.inputs.requested-audio-count }}"
                 SESSION_DATE=$(date +%Y%m%d)
-                REMOTE_BASE="cafe-asil:Asil-Records/cafe-asil"
+                REMOTE_BASE="cafe-asil:Asil-Records/asils-lofi-world"
                 REMOTE_RAW_AUDIO="${REMOTE_BASE}/raw_audios/${PLAYLIST_NAME}"
                 REMOTE_SESSION_BASE="${REMOTE_BASE}/sessions"
                 REMOTE_SESSION_BASE_DIR="${REMOTE_SESSION_BASE}/session_${SESSION_DATE}_${PLAYLIST_NAME}"
