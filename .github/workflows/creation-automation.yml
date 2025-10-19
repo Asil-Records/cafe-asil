@@ -11,7 +11,7 @@ on:
         options:
           - lofi-moments
           - sleepy-cafe
-          - morning-brew
+          - morning-coffee
       requested-audio-count:
         description: 'Total count of songs to create content'
         required: true
