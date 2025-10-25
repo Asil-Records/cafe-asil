@@ -63,7 +63,7 @@ done
 # echo "- Found $(wc -l < image_file_list.txt) tracks for merging." >> $GITHUB_STEP_SUMMARY
 
 echo "Merging MP4s into one file..."
-ffmpeg -loop 1 -i "./session_image/$FILES" -t 60 -c:v libx264 -r 30 -pix_fmt yuv420p output.mp4 || { echo "FFmpeg merge failed"; exit 1; }
+ffmpeg -loop 1 -i "./session_image/$FILES" -t 60 -c:v libx264 -r 30 -pix_fmt yuv420p merged_video.mp4 || { echo "FFmpeg merge failed"; exit 1; }
 echo "Merge completed successfully!"
 echo "- Video merge completed successfully!" >> $GITHUB_STEP_SUMMARY
 
