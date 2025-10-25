@@ -19,7 +19,7 @@ BASE_PATTERN=$(echo "$FIRST_FILE" | sed -E 's/^(([^_]+_){2})[^_]+(\.[a-zA-Z0-9]+
 echo "BASE_PATTERN=$BASE_PATTERN"
 
 # List all files matching the pattern
-FILES=$(rclone lsf "$REMOTE_RAW_IMAGE" --files-only | grep -E "^${BASE_PATTERN}[0-9]+\.mp4$")
+FILES=$(rclone lsf "$REMOTE_RAW_IMAGE" --files-only | grep -E "^${BASE_PATTERN}[0-9]+\.png$")
 
 # Debugging: Print the files being selected
 echo "FILES=$FILES"
@@ -34,7 +34,7 @@ echo "$FILES" | while IFS= read -r f; do
   # Trim whitespace and ensure the file name is clean
   f=$(echo "$f" | xargs)
   echo "Copying: $f to local session_audio directory"
-  rclone --transfers=5 copy "$REMOTE_RAW_IMAGE/$f" ./session_image --include "*.mp4" --progress
+  rclone --transfers=5 copy "$REMOTE_RAW_IMAGE/$f" ./session_image --include "*.png" --progress
 done
 
 # Move the copied files to the destination
@@ -45,25 +45,25 @@ echo "$FILES" | while IFS= read -r f; do
   rclone copy --transfers=5 "./session_image/$f" "$DEST/"
 done
 
-## Merge the MP4 files using FFmpeg
+# ## Merge the MP4 files using FFmpeg
+# echo "Merging MP4s into one file..."
+# # Create file list for ffmpeg
+# find "./session_image" -maxdepth 1 -type f -name "*.png" | sort | while read f; do
+#   echo "file '$f'" >> image_file_list.txt
+# done
+
+# echo "File list for ffmpeg:"
+# cat image_file_list.txt
+
+# if [ ! -s image_file_list.txt ]; then
+#   echo "No png files found — aborting merge."
+#   exit 1
+# fi
+
+# echo "- Found $(wc -l < image_file_list.txt) tracks for merging." >> $GITHUB_STEP_SUMMARY
+
 echo "Merging MP4s into one file..."
-# Create file list for ffmpeg
-find "./session_image" -maxdepth 1 -type f -name "*.mp4" | sort | while read f; do
-  echo "file '$f'" >> mp4_file_list.txt
-done
-
-echo "File list for ffmpeg:"
-cat mp4_file_list.txt
-
-if [ ! -s mp4_file_list.txt ]; then
-  echo "No mp4 files found — aborting merge."
-  exit 1
-fi
-
-echo "- Found $(wc -l < mp4_file_list.txt) tracks for merging." >> $GITHUB_STEP_SUMMARY
-
-echo "Merging MP4s into one file..."
-ffmpeg -f concat -safe 0 -i mp4_file_list.txt -c copy merged_video.mp4 -y || { echo "FFmpeg merge failed"; exit 1; }
+ffmpeg -loop 1 -i "./session_image/$FILES" -t 60 -c:v libx264 -r 30 -pix_fmt yuv420p output.mp4 || { echo "FFmpeg merge failed"; exit 1; }
 echo "Merge completed successfully!"
 echo "- Video merge completed successfully!" >> $GITHUB_STEP_SUMMARY
 
