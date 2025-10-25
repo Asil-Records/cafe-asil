@@ -25,45 +25,46 @@ FILES=$(rclone lsf "$REMOTE_RAW_IMAGE" --files-only | grep -E "^${BASE_PATTERN}[
 echo "FILES=$FILES"
 
 if [ -z "$FILES" ]; then
-  echo "⚠️ No image files found in $REMOTE_RAW_IMAGE"
+  echo "⚠️ No raw files found in $REMOTE_RAW_IMAGE"
   exit 1
 fi
 
-# Copy the selected files locally first
+# Copy and move the selected files
 echo "$FILES" | while IFS= read -r f; do
   # Trim whitespace and ensure the file name is clean
   f=$(echo "$f" | xargs)
   echo "Copying: $f to local session_audio directory"
-  rclone --transfers=5 copy "$REMOTE_RAW_IMAGE/$f" ./session_image --include "*.png" --progress
-done
-
-# Move the copied files to the destination
-echo "$FILES" | while IFS= read -r f; do
-  # Trim whitespace and ensure the file name is clean
-  f=$(echo "$f" | xargs)
+  rclone --transfers=5 copy "$REMOTE_RAW_IMAGE/$f" ./session_image --progress
   echo "Moving: $f to $DEST"
   rclone copy --transfers=5 "./session_image/$f" "$DEST/"
+  echo "✅ Processed image files to $DEST"
 done
 
-# ## Merge the MP4 files using FFmpeg
-# echo "Merging MP4s into one file..."
-# # Create file list for ffmpeg
-# find "./session_image" -maxdepth 1 -type f -name "*.png" | sort | while read f; do
-#   echo "file '$f'" >> image_file_list.txt
-# done
+# Check the type of the file and process accordingly
+if [[ "$FIRST_FILE" == *.png ]]; then
+  echo "Processing PNG file: $FILES"
+  echo "Merging images into one file..."
+  ffmpeg -loop 1 -i "./session_image/$FILES" -t 60 -c:v libx264 -r 30 -pix_fmt yuv420p merged_video.mp4 || { echo "FFmpeg merge failed"; exit 1; }
+elif [[ "$FIRST_FILE" == *.mp4 ]]; then
+  # Merge the MP4 files using FFmpeg
+  echo "Merging MP4s into one file..."
+  # Create file list for ffmpeg
+  find "./session_image" -maxdepth 1 -type f -name "*.mp4" | sort | while read f; do
+    echo "file '$f'" >> video_file_list.txt
+  done
+  echo "File list for ffmpeg:"
+  cat video_file_list.txt
+  if [ ! -s video_file_list.txt ]; then
+    echo "No mp4 files found — aborting merge."
+    exit 1
+  fi
+  echo "- Found $(wc -l < video_file_list.txt) tracks for merging." >> $GITHUB_STEP_SUMMARY
+  echo "Merging MP4s into one file..."
+  ffmpeg -f concat -safe 0 -i video_file_list.txt -c copy merged_video.mp4 -y || { echo "FFmpeg merge failed"; exit 1; }
+else
+  echo "Skipping unknown file type: $FIRST_FILE"
+fi
 
-# echo "File list for ffmpeg:"
-# cat image_file_list.txt
-
-# if [ ! -s image_file_list.txt ]; then
-#   echo "No png files found — aborting merge."
-#   exit 1
-# fi
-
-# echo "- Found $(wc -l < image_file_list.txt) tracks for merging." >> $GITHUB_STEP_SUMMARY
-
-echo "Merging MP4s into one file..."
-ffmpeg -loop 1 -i "./session_image/$FILES" -t 60 -c:v libx264 -r 30 -pix_fmt yuv420p merged_video.mp4 || { echo "FFmpeg merge failed"; exit 1; }
 echo "Merge completed successfully!"
 echo "- Video merge completed successfully!" >> $GITHUB_STEP_SUMMARY
 
