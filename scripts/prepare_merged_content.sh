@@ -22,7 +22,7 @@ fi
 
 # Merge audio and video
 ffmpeg -stream_loop -1 -i merged_video.mp4 -i merged_output.mp3 \
--filter_complex "[1:a]showfreqs=s=480x80:mode=bar:fscale=log:colors=0xFFB347,format=rgba,colorchannelmixer=aa=0.5[viz]; \
+-filter_complex "[1:a]showfreqs=s=480x80:mode=line:fscale=log:colors=0xFFB347,format=rgba,colorchannelmixer=aa=0.5[viz]; \
 [0:v][viz]overlay=(W-w)/2:H-h-80:format=auto,format=yuv420p[v]" \
 -shortest -map "[v]" -map 1:a -c:v libx264 -c:a aac -pix_fmt yuv420p final_output.mp4 -y
 
